@@ -22,6 +22,7 @@ public:
 
     MapItemDynamic *createDynamicItem();
     MapItemStatic *createStaticItem();
+    void clearMap();
 
 private:
 

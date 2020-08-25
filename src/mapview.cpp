@@ -83,9 +83,17 @@ void MapView::setZoom(int value)
     d->settings.setFactor(qPow(2., static_cast<qreal>(d->settings.zoomMax() - d->settings.zoom() + 1)) / 2.);
     d->tileLoader->update();
 
-    scale(1. / d->settings.factor(), 1. / d->settings.factor());
+    QMatrix matrix;
+    matrix.scale(1 / d->settings.factor(), 1 / d->settings.factor());
+
+    setMatrix(matrix);
+
     calculateMapGeometry();
     updateItemsSizes();
+
+    qDebug() << "z zoom:" << d->settings.zoom() <<
+                "scale:" << static_cast<qint32>(d->scale) <<
+                "factor:" << static_cast<qint32>(d->settings.factor());
 }
 
 int MapView::zoom() const
@@ -119,6 +127,15 @@ MapItemStatic *MapView::createStaticItem()
     return item;
 }
 
+void MapView::clearMap()
+{
+    foreach (MapItemDynamic *item, d->itemsDynamic)
+        item->deleteLater();
+
+    foreach (MapItemStatic *item, d->itemsStatic)
+        item->deleteLater();
+}
+
 void MapView::resizeEvent(QResizeEvent *e)
 {
     QGraphicsView::resizeEvent(e);
@@ -130,36 +147,17 @@ void MapView::wheelEvent(QWheelEvent *e)
 {
     Q_UNUSED(e);
 
-    qreal scaleFactor = 2;
-
-    if (e->delta() > 0)
+    if (e->angleDelta().y() > 0)
     {
         if(d->settings.zoom() < d->settings.zoomMax())
         {
-            d->scale *= scaleFactor;
-            d->settings.setFactor(d->settings.factor() / scaleFactor);
-            d->settings.setZoom(d->settings.zoom() + 1);
-            d->tileLoader->update();
-
-            scale(scaleFactor, scaleFactor);
-            calculateMapGeometry();
-            updateItemsSizes();
+            setZoom(d->settings.zoom() + 1);
         }
     }
     else if(d->settings.zoom() > 1)
     {
-
-        d->scale /= scaleFactor;
-        d->settings.setFactor(d->settings.factor() * scaleFactor);
-        d->settings.setZoom(d->settings.zoom() - 1);
-        d->tileLoader->update();
-
-        scale(1. / scaleFactor, 1. / scaleFactor);
-        calculateMapGeometry();
-        updateItemsSizes();
+        setZoom(d->settings.zoom() - 1);
     }
-
-    qDebug() << "zoom:" << d->settings.zoom() << "scale:" << static_cast<quint32>(d->scale);
 }
 
 void MapView::drawBackground(QPainter *painter, const QRectF &r)
