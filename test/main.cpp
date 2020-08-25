@@ -67,8 +67,8 @@ int main(int argc, char *argv[])
     MapItemStatic *itemEllipse = w.createStaticItem();
     itemEllipse->setPen(QPen(QBrush(QColor(70, 190, 70)), 2));
     itemEllipse->setBrush(QBrush(QColor(70, 190, 70, 120)));
-    itemEllipse->drawEllipse(QPointF(-21.95960999, 64.16207562),
-                             QPointF(-21.95478201, 64.15971418));
+    itemEllipse->drawEllipse(QPointF(-21.96008205, 64.16210368),
+                             QPointF(-21.95424557, 64.15974692));
     itemEllipse->setText("Ellipse");
 
     MapItemStatic *itemRect = w.createStaticItem();
