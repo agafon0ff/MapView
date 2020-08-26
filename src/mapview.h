@@ -2,6 +2,7 @@
 
 #include "mapitemdynamic.h"
 #include "mapitemstatic.h"
+#include "mapglobal.h"
 
 #include <QGraphicsObject>
 #include <QGraphicsView>
@@ -14,6 +15,8 @@ public:
 
     MapView(QWidget *parent = Q_NULLPTR);
     ~MapView();
+
+    void setProvider(MapProviders provider = GoogleMap);
 
     void setZoom(int value);
     inline int zoom() const;
