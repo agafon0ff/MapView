@@ -72,7 +72,12 @@ void MapItemStatic::drawPath(const QVector<QPointF> &points, bool close)
     prepareGeometryChange();
 
     d->pathPoints = points;
+
+#if QT_VERSION >= 0x051300
     d->path.clear();
+#else
+    d->path = QPainterPath();
+#endif
 
     for (int i=0; i<points.size(); ++i)
     {
@@ -97,7 +102,13 @@ void MapItemStatic::drawRect(const QPointF &boundLeftTop, const QPointF &boundRi
                          d->settings.toPoint(boundRightBottom));
 
     d->pathPoints.clear();
+
+#if QT_VERSION >= 0x051300
     d->path.clear();
+#else
+    d->path = QPainterPath();
+#endif
+
     d->path.addRect(rect);
     d->rect = d->path.boundingRect();
 
@@ -112,7 +123,13 @@ void MapItemStatic::drawEllipse(const QPointF &boundLeftTop, const QPointF &boun
                          d->settings.toPoint(boundRightBottom));
 
     d->pathPoints.clear();
+
+#if QT_VERSION >= 0x051300
     d->path.clear();
+#else
+    d->path = QPainterPath();
+#endif
+
     d->path.addEllipse(rect);
     d->rect = d->path.boundingRect();
 

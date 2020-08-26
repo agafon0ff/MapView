@@ -84,14 +84,15 @@ void MapView::setZoom(int value)
     d->tileLoader->update();
 
     QMatrix matrix;
-    matrix.scale(1 / d->settings.factor(), 1 / d->settings.factor());
+    matrix.scale(1 / d->settings.factor(),
+                 1 / d->settings.factor());
 
     setMatrix(matrix);
 
     calculateMapGeometry();
     updateItemsSizes();
 
-    qDebug() << "z zoom:" << d->settings.zoom() <<
+    qDebug() << "zoom:" << d->settings.zoom() <<
                 "scale:" << static_cast<qint32>(d->scale) <<
                 "factor:" << static_cast<qint32>(d->settings.factor());
 }
@@ -245,7 +246,8 @@ void MapView::updateItemsSizes()
         item->updateSizes();
 
         const QRectF itemRect = item->boundingRect();
-        const QRect globRect = QRect(mapFromScene(itemRect.topLeft()), mapFromScene(itemRect.bottomRight()));
+        const QRect globRect = QRect(mapFromScene(itemRect.topLeft()),
+                                     mapFromScene(itemRect.bottomRight()));
 
         if((globRect.width() + globRect.height()) / 2 > 2)
         {

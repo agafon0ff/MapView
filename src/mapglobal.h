@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <QObject>
 
 enum MapProviders

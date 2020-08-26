@@ -13,12 +13,10 @@ signals:
     void loaded(const QPoint &pos, const QPixmap &pix);
 
 public slots:
-
     void update();
     void loadTile(const QPoint &pos);
 
 private:
-
     void requestFinished();
     QUrl createUrl(const QPoint &pos);
     QString createCachePath(const QPoint &pos);
