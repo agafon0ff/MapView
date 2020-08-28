@@ -132,6 +132,22 @@ MapItemStatic *MapView::createStaticItem()
     return item;
 }
 
+void MapView::removeDynamicItem(MapItemDynamic *item)
+{
+    if (!d->itemsDynamic.contains(item)) return;
+
+    d->itemsDynamic.removeOne(item);
+    item->deleteLater();
+}
+
+void MapView::removeStaticItem(MapItemStatic *item)
+{
+    if (!d->itemsStatic.contains(item)) return;
+
+    d->itemsStatic.removeOne(item);
+    item->deleteLater();
+}
+
 void MapView::clearMap()
 {
     foreach (MapItemDynamic *item, d->itemsDynamic)
