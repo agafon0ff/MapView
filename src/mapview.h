@@ -26,6 +26,7 @@ public:
 
 private:
 
+    void showEvent(QShowEvent *e);
     void resizeEvent(QResizeEvent *e);
     void wheelEvent(QWheelEvent *e);
     void drawBackground(QPainter *painter, const QRectF &r);

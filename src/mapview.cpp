@@ -137,10 +137,15 @@ void MapView::clearMap()
         item->deleteLater();
 }
 
+void MapView::showEvent(QShowEvent *e)
+{
+    QGraphicsView::showEvent(e);
+    calculateMapGeometry();
+}
+
 void MapView::resizeEvent(QResizeEvent *e)
 {
     QGraphicsView::resizeEvent(e);
-
     calculateMapGeometry();
 }
 
