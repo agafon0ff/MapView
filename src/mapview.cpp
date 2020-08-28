@@ -1,5 +1,4 @@
 #include "mapview.h"
-#include "mapglobal.h"
 #include "maploader.h"
 
 #include <QGraphicsScene>
@@ -74,6 +73,11 @@ MapView::~MapView()
     delete d->tileLoader;
     delete d->map;
     delete d;
+}
+
+void MapView::setProvider(MapProviders provider)
+{
+    d->settings.setProvider(provider);
 }
 
 void MapView::setZoom(int value)

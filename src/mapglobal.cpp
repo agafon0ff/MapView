@@ -4,7 +4,7 @@
 
 struct MapGlobal::MapGlobalPrivate
 {
-    MapProviders provider = GoogleMap;
+    MapProviders provider = OsmMap;
     int zoomMax = 23;
     int zoom = zoomMax;
     int tileWidth = 256;
