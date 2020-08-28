@@ -25,6 +25,10 @@ public:
 
     MapItemDynamic *createDynamicItem();
     MapItemStatic *createStaticItem();
+
+    void removeDynamicItem(MapItemDynamic *item);
+    void removeStaticItem(MapItemStatic *item);
+
     void clearMap();
 
 private:

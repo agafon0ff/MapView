@@ -24,6 +24,7 @@ struct MapItemDynamic::MapItemDynamicPrivate
     QBrush brush = QBrush(QColor(0, 0, 0, 0));
 
     qreal radius = 0;
+    qreal angle = 0;
     QPixmap pixmap;
     QPointF indent = QPointF(0, 0);
     QGraphicsSimpleTextItem *textItem = Q_NULLPTR;
@@ -55,6 +56,13 @@ void MapItemDynamic::move(const QPointF &coords)
 QPointF MapItemDynamic::coords()
 {
     return d->settings.toCoords(d->pos);
+}
+
+void MapItemDynamic::rotate(qreal angle)
+{
+    prepareGeometryChange();
+    d->angle = angle;
+    update();
 }
 
 void MapItemDynamic::setPen(const QPen &pen)
@@ -147,13 +155,26 @@ void MapItemDynamic::updateSizes()
 
 QRectF MapItemDynamic::boundingRect() const
 {
-    return QRectF(d->rect);
+    if (d->angle == 0) return d->rect;
+
+    QTransform t;
+    t.translate(d->rect.center().x(), d->rect.center().y());
+    t.rotate(d->angle);
+
+    return QRectF(t.mapRect(d->rect));
 }
 
 QPainterPath MapItemDynamic::shape() const
 {
     QPainterPath path;
     path.addRect(d->rect);
+    if (d->angle == 0) return path;
+
+    QTransform t;
+    t.translate(d->rect.center().x(), d->rect.center().y());
+    t.rotate(d->angle);
+    path = t.map(path);
+
     return path;
 }
 
@@ -169,6 +190,12 @@ void MapItemDynamic::paint(QPainter *painter, const QStyleOptionGraphicsItem *it
 
     painter->setPen(pen);
     painter->setBrush(d->brush);
+
+    if (d->angle != 0)
+    {
+        painter->translate(d->rect.center());
+        painter->rotate(d->angle);
+    }
 
     if (d->type == MapItemDynamicPrivate::TypeRect)
     {

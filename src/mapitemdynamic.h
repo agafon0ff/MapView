@@ -11,6 +11,7 @@ public:
 
     void move(const QPointF &coords); // QPointF(longitude, latitude)
     QPointF coords();
+    void rotate(qreal angle);
 
     void setPen(const QPen &pen);
     void setBrush(const QBrush &brush);
