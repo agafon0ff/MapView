@@ -38,13 +38,13 @@ MapItemStatic::~MapItemStatic()
 void MapItemStatic::setPen(const QPen &pen)
 {
     d->pen = pen;
-    update();
+    update(d->rect);
 }
 
 void MapItemStatic::setBrush(const QBrush &brush)
 {
     d->brush = brush;
-    update();
+    update(d->rect);
 }
 
 void MapItemStatic::setText(const QString &text)
@@ -91,7 +91,7 @@ void MapItemStatic::drawPath(const QVector<QPointF> &points, bool close)
     if (close) d->path.closeSubpath();
 
     d->rect = d->path.boundingRect();
-    update();
+    update(d->rect);
 }
 
 void MapItemStatic::drawRect(const QPointF &boundLeftTop, const QPointF &boundRightBottom)
@@ -112,7 +112,7 @@ void MapItemStatic::drawRect(const QPointF &boundLeftTop, const QPointF &boundRi
     d->path.addRect(rect);
     d->rect = d->path.boundingRect();
 
-    update();
+    update(d->rect);
 }
 
 void MapItemStatic::drawEllipse(const QPointF &boundLeftTop, const QPointF &boundRightBottom)
@@ -133,7 +133,7 @@ void MapItemStatic::drawEllipse(const QPointF &boundLeftTop, const QPointF &boun
     d->path.addEllipse(rect);
     d->rect = d->path.boundingRect();
 
-    update();
+    update(d->rect);
 }
 
 void MapItemStatic::updateSizes()

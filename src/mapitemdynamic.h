@@ -12,6 +12,8 @@ public:
     void move(const QPointF &coords); // QPointF(longitude, latitude)
     QPointF coords();
     void rotate(qreal angle);
+    QFont font();
+    bool isInMove();
 
     void setPen(const QPen &pen);
     void setBrush(const QBrush &brush);
@@ -26,9 +28,21 @@ public:
     QRectF boundingRect() const;
     QPainterPath shape() const;
 
+signals:
+    void selected();
+    void unselected();
+    void pressed();
+    void moved();
+    void released();
+    void movedTo(const QPointF &coords);
+
 private:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget);
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+
+    void mousePressEvent(QGraphicsSceneMouseEvent *e);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *e);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *e);
 
     struct MapItemDynamicPrivate;
     MapItemDynamicPrivate * const d;
