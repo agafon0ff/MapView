@@ -1,7 +1,10 @@
 #include "mapitemdynamic.h"
 #include "mapglobal.h"
 
+#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include "QBitmap"
+#include "QRegion"
 #include <QDebug>
 
 struct MapItemDynamic::MapItemDynamicPrivate
@@ -23,11 +26,13 @@ struct MapItemDynamic::MapItemDynamicPrivate
     QPen pen = QPen(QBrush(QColor(Qt::black)), 1);
     QBrush brush = QBrush(QColor(0, 0, 0, 0));
 
+    bool isInMove = false;
     qreal radius = 0;
     qreal angle = 0;
     QPixmap pixmap;
     QPointF indent = QPointF(0, 0);
     QGraphicsSimpleTextItem *textItem = Q_NULLPTR;
+    QGraphicsPixmapItem *pixmapItem = Q_NULLPTR;
 };
 
 MapItemDynamic::MapItemDynamic(QGraphicsItem *parent) : QGraphicsObject(parent),
@@ -62,19 +67,32 @@ void MapItemDynamic::rotate(qreal angle)
 {
     prepareGeometryChange();
     d->angle = angle;
-    update();
+    update(d->rect);
+}
+
+QFont MapItemDynamic::font()
+{
+    if(d->textItem)
+        return d->textItem->font();
+
+    return QFont();
+}
+
+bool MapItemDynamic::isInMove()
+{
+    return d->isInMove;
 }
 
 void MapItemDynamic::setPen(const QPen &pen)
 {
     d->pen = pen;
-    update();
+    update(d->rect);
 }
 
 void MapItemDynamic::setBrush(const QBrush &brush)
 {
     d->brush = brush;
-    update();
+    update(d->rect);
 }
 
 void MapItemDynamic::setText(const QString &text, const QPoint &indent)
@@ -119,6 +137,9 @@ void MapItemDynamic::drawPixmap(const QPixmap &pixmap, const QSize &size)
     d->type = MapItemDynamicPrivate::TypePixmap;
     d->pixmap = pixmap;
     d->size = static_cast<QSizeF>(size);
+
+    d->pixmapItem = new QGraphicsPixmapItem(d->pixmap, this);
+
     updateSizes();
 }
 
@@ -150,7 +171,13 @@ void MapItemDynamic::updateSizes()
                             d->indent.y() * d->settings.factor());      // ******
     }
 
-    update();
+    if (d->pixmapItem)
+    {
+        d->pixmapItem->setScale(d->settings.factor());
+        d->pixmapItem->setPos(pos());
+    }
+
+    update(d->rect);
 }
 
 QRectF MapItemDynamic::boundingRect() const
@@ -222,6 +249,40 @@ QVariant MapItemDynamic::itemChange(GraphicsItemChange change, const QVariant &v
 
         d->pos = QPointF(x() + width / 2, y() + height / 2);
     }
+    else if (change == ItemSelectedHasChanged)
+    {
+        uint state = value.toUInt();
+
+        if (state == 1) emit selected();
+        else emit unselected();
+    }
 
     return QGraphicsItem::itemChange(change, value);
+}
+
+void MapItemDynamic::mousePressEvent(QGraphicsSceneMouseEvent *e)
+{
+    QGraphicsItem::mousePressEvent(e);
+    emit pressed();
+}
+
+void MapItemDynamic::mouseMoveEvent(QGraphicsSceneMouseEvent *e)
+{
+    QGraphicsItem::mouseMoveEvent(e);
+
+    if (e->buttons() == Qt::LeftButton)
+        d->isInMove = true;
+
+    emit moved();
+}
+
+void MapItemDynamic::mouseReleaseEvent(QGraphicsSceneMouseEvent *e)
+{
+    QGraphicsItem::mouseReleaseEvent(e);
+    emit released();
+
+    if (d->isInMove)
+        emit movedTo(d->settings.toCoords(pos()));
+
+    d->isInMove = false;
 }
