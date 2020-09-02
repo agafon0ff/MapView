@@ -155,6 +155,9 @@ void MapView::clearMap()
 
     foreach (MapItemStatic *item, d->itemsStatic)
         item->deleteLater();
+
+    d->itemsDynamic.clear();
+    d->itemsStatic.clear();
 }
 
 void MapView::showEvent(QShowEvent *e)

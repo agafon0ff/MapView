@@ -32,7 +32,6 @@ struct MapItemDynamic::MapItemDynamicPrivate
     QPixmap pixmap;
     QPointF indent = QPointF(0, 0);
     QGraphicsSimpleTextItem *textItem = Q_NULLPTR;
-    QGraphicsPixmapItem *pixmapItem = Q_NULLPTR;
 };
 
 MapItemDynamic::MapItemDynamic(QGraphicsItem *parent) : QGraphicsObject(parent),
@@ -135,10 +134,14 @@ void MapItemDynamic::drawEllipse(const QSize &size)
 void MapItemDynamic::drawPixmap(const QPixmap &pixmap, const QSize &size)
 {
     d->type = MapItemDynamicPrivate::TypePixmap;
-    d->pixmap = pixmap;
     d->size = static_cast<QSizeF>(size);
 
-    d->pixmapItem = new QGraphicsPixmapItem(d->pixmap, this);
+    d->pixmap = QPixmap(size);
+    d->pixmap.fill(QColor(0,0,0,0));
+    QPainter p(&d->pixmap);
+    p.setRenderHint(QPainter::SmoothPixmapTransform);
+    p.drawPixmap(QRectF(0, 0, size.width(), size.height()), pixmap, pixmap.rect());
+    p.end();
 
     updateSizes();
 }
@@ -169,12 +172,6 @@ void MapItemDynamic::updateSizes()
                             d->rect.center().y() -                      // ******
                             rect.center().y() * d->settings.factor() +  // y
                             d->indent.y() * d->settings.factor());      // ******
-    }
-
-    if (d->pixmapItem)
-    {
-        d->pixmapItem->setScale(d->settings.factor());
-        d->pixmapItem->setPos(pos());
     }
 
     update(d->rect);
