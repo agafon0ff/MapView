@@ -1,8 +1,7 @@
 #pragma once
 
-#include "mapitemdynamic.h"
-#include "mapitemstatic.h"
 #include "mapglobal.h"
+#include "mapitem.h"
 
 #include <QGraphicsObject>
 #include <QGraphicsView>
@@ -23,13 +22,13 @@ public:
 
     void setCenterOn(const QPointF &coords); // QPointF(longitude, latitude)
 
-    MapItemDynamic *createDynamicItem();
-    MapItemStatic *createStaticItem();
-
-    void removeDynamicItem(MapItemDynamic *item);
-    void removeStaticItem(MapItemStatic *item);
-
+    MapItem *createItem();
+    void removeItem(MapItem *item);
     void clearMap();
+
+signals:
+    void zoomChanged(int zoom);
+    void scaleFactorChanged(qreal factor);
 
 private:
 
@@ -43,7 +42,6 @@ private:
     void mouseReleaseEvent(QMouseEvent *e);
 
     void calculateMapGeometry();
-    void updateItemsSizes();
 
     struct MapViewPrivate;
     MapViewPrivate * const d;

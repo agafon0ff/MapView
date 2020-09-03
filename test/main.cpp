@@ -1,7 +1,11 @@
 #include "mapview.h"
 #include "mapglobal.h"
+#include "mapitem.h"
 
 #include <QApplication>
+#include <QDebug>
+#include <QTimer>
+#include <QPolygon>
 
 int main(int argc, char *argv[])
 {
@@ -10,11 +14,30 @@ int main(int argc, char *argv[])
     w.resize(800,800);
     w.show();
 
-    w.setProvider(BingRoads);
+    w.setProvider(GoogleMap);
     w.setZoom(16);
     w.setCenterOn(QPointF(-21.94336653, 64.15625817));
 
-    QVector<QPointF> poligon = {
+    MapItem *itemPixmap = w.createItem();
+    itemPixmap->move(QPointF(-21.93180084, 64.15701582));
+    itemPixmap->setSelectable(true);
+    itemPixmap->setMovable(true);
+    itemPixmap->setPixmap(QPixmap("../MapView/test/point.png"), QSize(40, 40));
+    itemPixmap->setText("itemPixmap", {0, 30});
+    itemPixmap->setZValue(2);
+
+    MapItem *itemLabel = w.createItem();
+    itemLabel->move(QPointF(-21.93381786, 64.15841882));
+    itemLabel->setSelectable(true);
+    itemLabel->setMovable(true);
+    itemLabel->setRect({50, 20}, {5, 5});
+//    itemLabel->setEllipse({50, 30});
+    itemLabel->setText("Label");
+    itemLabel->setPen(QPen(QColor(Qt::blue), 1));
+    itemLabel->setBrush(QBrush(QColor(220, 220, 220, 220)));
+    itemLabel->setColor(QColor(Qt::blue));
+
+    QVector<QPointF> polygon = {
         {-21.94048047, 64.15304964},
         {-21.94271207, 64.15447622},
         {-21.94470763, 64.15396172},
@@ -31,11 +54,10 @@ int main(int argc, char *argv[])
         {-21.94279790, 64.15217027}
     };
 
-    MapItemStatic *itemPoligon = w.createStaticItem();
+    MapItem *itemPoligon = w.createItem();
     itemPoligon->setPen(QPen(QBrush(QColor(190, 70, 70)), 2));
     itemPoligon->setBrush(QBrush(QColor(190, 70, 70, 120)));
-    itemPoligon->drawPath(poligon, true);
-    itemPoligon->setText("Poligon");
+    itemPoligon->setStaticPath(polygon, true);
 
     QVector<QPointF> path = {
         {-21.95284545, 64.15330923},
@@ -60,48 +82,28 @@ int main(int argc, char *argv[])
         {-21.93938613, 64.16029170}
     };
 
-    MapItemStatic *itemPath = w.createStaticItem();
-    itemPath->setPen(QPen(QBrush(QColor(Qt::blue)), 2));
-    itemPath->drawPath(path, false);
-    itemPath->setText("Path");
+    MapItem *itemPath = w.createItem();
+    itemPath->setPen(QPen(QColor(Qt::blue), 3));
+    itemPath->setStaticPath(path, false);
 
-    MapItemStatic *itemEllipse = w.createStaticItem();
-    itemEllipse->setPen(QPen(QBrush(QColor(70, 190, 70)), 2));
+    MapItem *itemEllipse = w.createItem();
+    itemEllipse->setPen(QPen(QColor(70, 190, 70), 2));
     itemEllipse->setBrush(QBrush(QColor(70, 190, 70, 120)));
-    itemEllipse->drawEllipse(QPointF(-21.96008205, 64.16210368),
-                             QPointF(-21.95424557, 64.15974692));
+    itemEllipse->setStaticEllipse(QPointF(-21.96008205, 64.16210368),
+                                  QPointF(-21.95424557, 64.15974692));
+    itemEllipse->setFont(QFont("mono", 12., QFont::Medium));
     itemEllipse->setText("Ellipse");
+    itemEllipse->setColor(QColor(70, 190, 70));
 
-    MapItemStatic *itemRect = w.createStaticItem();
-    itemRect->setPen(QPen(QBrush(QColor(210, 160, 20)), 2));
+
+    MapItem *itemRect = w.createItem();
+    itemRect->setPen(QPen(QColor(210, 160, 20), 2));
     itemRect->setBrush(QBrush(QColor(210, 210, 77, 120)));
-    itemRect->drawRect(QPointF(-21.94624186, 64.16027534),
-                       QPointF(-21.94255114, 64.15900338));
+    itemRect->setStaticRect(QPointF(-21.94624186, 64.16027534),
+                            QPointF(-21.94255114, 64.15900338));
+    itemRect->setFont(QFont("mono", 12., QFont::Medium));
     itemRect->setText("Rect");
-
-
-    MapItemDynamic *itemLabel = w.createDynamicItem();
-    itemLabel->move(QPointF(-21.93969727, 64.16144904));
-    itemLabel->setPen(QPen(QBrush(QColor(70, 70, 190)), 1));
-    itemLabel->setBrush(QBrush(QColor(250, 250, 250, 250)));
-    itemLabel->drawRect(QSize(40, 20), 3);
-    itemLabel->setText("Label");
-
-    MapItemDynamic *itemTag = w.createDynamicItem();
-    itemTag->move(QPointF(-21.92931175, 64.15997138));
-    itemTag->setPen(QPen(QBrush(QColor(190, 70, 70)), 1));
-    itemTag->setBrush(QBrush(QColor(220, 70, 70, 220)));
-    itemTag->drawEllipse(QSize(10, 10));
-    itemTag->setText("Tag item", QPoint(0, -15));
-
-    MapItemDynamic *itemPix = w.createDynamicItem();
-    itemPix->move(QPointF(-21.93879604, 64.15478959));
-    itemPix->setPen(QPen(QBrush(QColor(108, 48, 140)), 1));
-    itemPix->setBrush(QBrush(QColor(190, 70, 70, 190)));
-    itemPix->drawPixmap(QPixmap("../MapView/test/point.png"), QSize(40, 40));
-    itemPix->setText("Pixmap", QPoint(0, 30));
-    itemPix->setFlags(QGraphicsItem::ItemIsSelectable |
-                      QGraphicsItem::ItemIsMovable);
+    itemRect->setColor(QColor(210, 160, 20));
 
     return a.exec();
 }

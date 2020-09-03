@@ -19,16 +19,14 @@ struct MapView::MapViewPrivate
 {
     MapGlobal &settings = MapGlobal::instance();
     MapLoader *tileLoader = Q_NULLPTR;
-
     MapObject *map = Q_NULLPTR;
-    bool isMove = false;
 
-    quint64 tileWidthScaled;
-    QRect indentRect;
-    qreal scale = settings.tilesCount();
+    bool        isMove = false;
+    quint64     tileWidthScaled;
+    QRect       indentRect;
+    qreal       scale = settings.tilesCount();
 
-    QVector<MapItemStatic*> itemsStatic;
-    QVector<MapItemDynamic*> itemsDynamic;
+    QVector<MapItem*> items;
 };
 
 MapView::MapView(QWidget *parent) : QGraphicsView(parent),
@@ -64,11 +62,7 @@ MapView::MapView(QWidget *parent) : QGraphicsView(parent),
 
 MapView::~MapView()
 {
-    foreach (MapItemStatic *item, d->itemsStatic)
-    {
-        item->disconnect();
-        item->deleteLater();
-    }
+    clearMap();
 
     delete d->tileLoader;
     delete d->map;
@@ -92,13 +86,14 @@ void MapView::setZoom(int value)
                  1 / d->settings.factor());
 
     setMatrix(matrix);
-
     calculateMapGeometry();
-    updateItemsSizes();
 
     qDebug() << "zoom:" << d->settings.zoom() <<
                 "scale:" << static_cast<qint32>(d->scale) <<
                 "factor:" << static_cast<qint32>(d->settings.factor());
+
+    emit zoomChanged(d->settings.zoom());
+    emit scaleFactorChanged(d->settings.factor());
 }
 
 int MapView::zoom() const
@@ -112,52 +107,29 @@ void MapView::setCenterOn(const QPointF &coords)
     calculateMapGeometry();
 }
 
-MapItemDynamic *MapView::createDynamicItem()
+MapItem *MapView::createItem()
 {
-    MapItemDynamic *item = new MapItemDynamic;
-    item->setPos(0., 0.);
-    d->itemsDynamic.append(item);
+    MapItem *item = new MapItem;
+    d->items.append(item);
     scene()->addItem(item);
 
     return item;
 }
 
-MapItemStatic *MapView::createStaticItem()
+void MapView::removeItem(MapItem *item)
 {
-    MapItemStatic *item = new MapItemStatic;
-    item->setPos(0., 0.);
-    d->itemsStatic.append(item);
-    scene()->addItem(item);
+    if (!d->items.contains(item)) return;
 
-    return item;
-}
-
-void MapView::removeDynamicItem(MapItemDynamic *item)
-{
-    if (!d->itemsDynamic.contains(item)) return;
-
-    d->itemsDynamic.removeOne(item);
-    item->deleteLater();
-}
-
-void MapView::removeStaticItem(MapItemStatic *item)
-{
-    if (!d->itemsStatic.contains(item)) return;
-
-    d->itemsStatic.removeOne(item);
+    d->items.removeOne(item);
     item->deleteLater();
 }
 
 void MapView::clearMap()
 {
-    foreach (MapItemDynamic *item, d->itemsDynamic)
+    foreach (MapItem *item, d->items)
         item->deleteLater();
 
-    foreach (MapItemStatic *item, d->itemsStatic)
-        item->deleteLater();
-
-    d->itemsDynamic.clear();
-    d->itemsStatic.clear();
+    d->items.clear();
 }
 
 void MapView::showEvent(QShowEvent *e)
@@ -265,32 +237,6 @@ void MapView::calculateMapGeometry()
         d->indentRect = mapRect;
         d->map->setGeometry(mapRect);
     }
-}
-
-void MapView::updateItemsSizes()
-{
-    foreach (MapItemStatic *item, d->itemsStatic)
-    {
-        item->updateSizes();
-
-        const QRectF itemRect = item->boundingRect();
-        const QRect globRect = QRect(mapFromScene(itemRect.topLeft()),
-                                     mapFromScene(itemRect.bottomRight()));
-
-        if((globRect.width() + globRect.height()) / 2 > 2)
-        {
-            if(!item->isVisible())
-                item->show();
-        }
-        else
-        {
-            if(item->isVisible())
-                item->hide();
-        }
-    }
-
-    foreach (MapItemDynamic *item, d->itemsDynamic)
-        item->updateSizes();
 }
 
 /*********************** MapObject ***********************/
