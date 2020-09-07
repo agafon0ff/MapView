@@ -34,7 +34,13 @@ int main(int argc, char *argv[])
 //    itemLabel->setEllipse({50, 30});
     itemLabel->setText("Label");
     itemLabel->setPen(QPen(QColor(Qt::blue), 1));
-    itemLabel->setBrush(QBrush(QColor(220, 220, 220, 220)));
+    itemLabel->setPen(QPen(QColor(Qt::gray), 1), MapItemState::StateHovered);
+    itemLabel->setPen(QPen(QColor(Qt::red), 1), MapItemState::StateSelected);
+
+    itemLabel->setBrush(QBrush(QColor("#eee")));
+    itemLabel->setBrush(QBrush(QColor("#bbf")), MapItemState::StateHovered);
+    itemLabel->setBrush(QBrush(QColor("#fbb")), MapItemState::StateSelected);
+
     itemLabel->setColor(QColor(Qt::blue));
 
     QVector<QPointF> polygon = {
@@ -94,7 +100,6 @@ int main(int argc, char *argv[])
     itemEllipse->setFont(QFont("mono", 12., QFont::Medium));
     itemEllipse->setText("Ellipse");
     itemEllipse->setColor(QColor(70, 190, 70));
-
 
     MapItem *itemRect = w.createItem();
     itemRect->setPen(QPen(QColor(210, 160, 20), 2));

@@ -29,6 +29,7 @@ public:
 signals:
     void zoomChanged(int zoom);
     void scaleFactorChanged(qreal factor);
+    void cursorCoords(const QPointF &point);
 
 private:
 
