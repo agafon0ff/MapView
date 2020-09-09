@@ -23,6 +23,7 @@ public:
     void move(const QPointF &coords); // QPointF(longitude, latitude)
     QPointF coords();
     void rotate(qreal angle);
+    bool isInMove();
 
     void setSelectable(bool state);
     void setMovable(bool state);
@@ -91,7 +92,7 @@ private:
     MapItemPixmapPrivate * const d;
 };
 
-//! \brief The MapItemShape class
+//! \brief The MapItemPath class
 class MapItemPath : public QGraphicsItem
 {
 public:
