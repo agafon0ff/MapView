@@ -20,6 +20,11 @@ struct MapItem::MapItemPrivate
     bool isMovable    = false;
     bool isStatic     = false;
 
+    bool isMoved = false;
+    bool isPressed = false;
+    bool isHovered = false;
+    bool isSelected = false;
+
     QFont   font = QFont("mono", 12, QFont::Medium);
     QColor  color = QColor(Qt::black);
 
@@ -43,6 +48,7 @@ MapItem::MapItem(QGraphicsItem *parent) : QGraphicsObject(parent),
     setZValue(1);
     setAcceptHoverEvents(true);
     setCacheMode(DeviceCoordinateCache);
+    setFlag(ItemSendsGeometryChanges, true);
 }
 
 MapItem::~MapItem()
@@ -70,6 +76,11 @@ void MapItem::rotate(qreal angle)
 {
     if (d->itemPixmap)
         d->itemPixmap->setRotation(angle);
+}
+
+bool MapItem::isInMove()
+{
+    return d->isMoved;
 }
 
 void MapItem::setSelectable(bool state)
@@ -129,6 +140,12 @@ void MapItem::setColor(const QColor &color)
 
     if(d->itemText)
         d->itemText->setBrush(QBrush(color));
+}
+
+void MapItem::setMaskBrush(const QBrush &brush, MapItemState state)
+{
+    if(d->itemPixmap)
+        d->itemPixmap->setMaskBrush(brush, state);
 }
 
 void MapItem::setPixmap(const QPixmap &pixmap, const QSize &size, MapItemState state)
@@ -314,6 +331,17 @@ void MapItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWi
     painter->drawPath(d->path);
 }
 
+QVariant MapItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+{
+    if (change == ItemPositionChange)
+    {
+        d->isMoved = true;
+        emit moved(d->settings.toCoords(value.toPointF()));
+    }
+
+    return QGraphicsItem::itemChange(change, value);
+}
+
 void MapItem::checkScale()
 {
     if (d->path.isEmpty())
@@ -323,18 +351,55 @@ void MapItem::checkScale()
     }
     else
     {
-        if(d->itemText)
+        if (d->itemText)
         {
             if (d->itemText->scale() != d->settings.factor())
                 d->itemText->setScale(d->settings.factor());
+
+            const qreal pathWidth = d->path.boundingRect().width() / d->settings.factor();
+            const qreal textWidth = d->itemText->boundingRect().width();
+
+            if (textWidth > pathWidth) d->itemText->hide();
+            else d->itemText->show();
         }
     }
+}
+
+void MapItem::onPressEvent(bool state)
+{
+    if (d->isPressed == state) return;
+
+    d->isPressed = state;
+    emit pressed(state);
+
+    if(state)
+        d->isMoved = false;
+
+    if(d->isMoved && !state)
+        emit movedTo(d->settings.toCoords(pos()));
+}
+
+void MapItem::onSelectEvent(bool state)
+{
+    if (d->isSelected == state) return;
+
+    d->isSelected = state;
+    emit selected(state);
+}
+
+void MapItem::onHoverEvent(bool state)
+{
+    if (d->isHovered == state) return;
+
+    d->isHovered = state;
+    emit hovered(state);
 }
 
 //! \brief The MapItemPixmap class
 struct MapItemPixmap::MapItemPixmapPrivate
 {
     QMap<MapItemState, QPixmap> pixmaps;
+    QMap<MapItemState, QBrush> brushes;
 };
 
 MapItemPixmap::MapItemPixmap(const QPixmap &pixmap, QGraphicsItem *parent) :
@@ -345,16 +410,26 @@ MapItemPixmap::MapItemPixmap(const QPixmap &pixmap, QGraphicsItem *parent) :
     d->pixmaps = { { MapItemState::StateDefault, pixmap },
                    { MapItemState::StateHovered, QPixmap() },
                    { MapItemState::StateSelected, QPixmap() } };
+
+    d->brushes = { {MapItemState::StateDefault,     QBrush(Qt::NoBrush)},
+                   {MapItemState::StateHovered,     QBrush(Qt::NoBrush)},
+                   {MapItemState::StateSelected,    QBrush(Qt::NoBrush)} };
 }
 
 MapItemPixmap::~MapItemPixmap()
 {
-
 }
 
 void MapItemPixmap::setItemPixmap(const QPixmap &pixmap, MapItemState state)
 {
     d->pixmaps[state] = pixmap;
+    update(boundingRect());
+}
+
+void MapItemPixmap::setMaskBrush(const QBrush &brush, MapItemState state)
+{
+    d->brushes[state] = brush;
+    update(boundingRect());
 }
 
 void MapItemPixmap::paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget)
@@ -367,19 +442,55 @@ void MapItemPixmap::paint(QPainter *painter, const QStyleOptionGraphicsItem *ite
     bool isHovered = item->state & QStyle::State_MouseOver;
     bool isSelected = item->state & QStyle::State_Selected;
 
-    if(parentItem()->isSelected() != isSelected)
+    if (parentItem()->isSelected() != isSelected)
         parentItem()->setSelected(isSelected);
 
-    if(isSelected && !d->pixmaps.value(MapItemState::StateSelected).isNull())
-        setPixmap(d->pixmaps.value(MapItemState::StateSelected));
-    else if(isHovered && !d->pixmaps.value(MapItemState::StateHovered).isNull())
-        setPixmap(d->pixmaps.value(MapItemState::StateHovered));
+    if (isSelected)
+    {
+        if (!d->pixmaps.value(MapItemState::StateSelected).isNull())
+            setPixmap(d->pixmaps.value(MapItemState::StateSelected));
+
+        if (d->brushes.value(MapItemState::StateSelected) != Qt::NoBrush)
+        {
+            painter->setClipRegion(QRegion(d->pixmaps.value(MapItemState::StateDefault).mask()));
+            painter->setBrush(d->brushes.value(MapItemState::StateSelected));
+            painter->drawRect(boundingRect());
+        }
+    }
+    else if (isHovered)
+    {
+        if (!d->pixmaps.value(MapItemState::StateHovered).isNull())
+            setPixmap(d->pixmaps.value(MapItemState::StateHovered));
+
+        if (d->brushes.value(MapItemState::StateHovered) != Qt::NoBrush)
+        {
+            painter->setClipRegion(QRegion(d->pixmaps.value(MapItemState::StateDefault).mask()));
+            painter->setBrush(d->brushes.value(MapItemState::StateHovered));
+            painter->drawRect(boundingRect());
+        }
+    }
     else setPixmap(d->pixmaps.value(MapItemState::StateDefault));
+
+    dynamic_cast<MapItem*>(parentItem())->onHoverEvent(isHovered);
+    dynamic_cast<MapItem*>(parentItem())->onSelectEvent(isSelected);
+}
+
+void MapItemPixmap::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsItem::mousePressEvent(event);
+    dynamic_cast<MapItem*>(parentItem())->onPressEvent(true);
+}
+
+void MapItemPixmap::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsItem::mouseReleaseEvent(event);
+    dynamic_cast<MapItem*>(parentItem())->onPressEvent(false);
 }
 
 //! \brief The MapItemPath class
 struct MapItemPath::MapItemShapePrivate
 {
+    MapGlobal &settings = MapGlobal::instance();
     QPainterPath path;
     QMap<MapItemState, QPen> pens;
     QMap<MapItemState, QBrush> brushes;
@@ -448,4 +559,19 @@ void MapItemPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *item,
     painter->setBrush(d->brushes.value(state));
     painter->setPen(d->pens.value(state));
     painter->drawPath(d->path);
+
+    dynamic_cast<MapItem*>(parentItem())->onHoverEvent(isHovered);
+    dynamic_cast<MapItem*>(parentItem())->onSelectEvent(isSelected);
+}
+
+void MapItemPath::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsItem::mousePressEvent(event);
+    dynamic_cast<MapItem*>(parentItem())->onPressEvent(true);
+}
+
+void MapItemPath::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsItem::mouseReleaseEvent(event);
+    dynamic_cast<MapItem*>(parentItem())->onPressEvent(false);
 }

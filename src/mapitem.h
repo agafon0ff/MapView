@@ -31,6 +31,7 @@ public:
     void setBrush(const QBrush &brush, MapItemState state = MapItemState::StateDefault);
     void setFont(const QFont &font);
     void setColor(const QColor &color); //text color
+    void setMaskBrush(const QBrush &brush, MapItemState state = MapItemState::StateSelected); // if used as pixmap item
 
     void setPixmap(const QPixmap &pixmap, const QSize &size, MapItemState state = MapItemState::StateDefault);
     void setText(const QString &text, const QPoint &indent = QPoint(0, 0));
@@ -49,10 +50,23 @@ public:
     QPainterPath shape() const;
 
 signals:
+    void selected(bool state);
+    void hovered(bool state);
+    void pressed(bool state);
+    void moved(const QPointF &coords);
+    void movedTo(const QPointF &coords);
 
 private:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget);
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
     void checkScale();
+
+    void onPressEvent(bool state);
+    void onSelectEvent(bool state);
+    void onHoverEvent(bool state);
+
+    friend class MapItemPixmap;
+    friend class MapItemPath;
 
     struct MapItemPrivate;
     MapItemPrivate * const d;
@@ -66,9 +80,12 @@ public:
     ~MapItemPixmap();
 
     void setItemPixmap(const QPixmap &pixmap, MapItemState state = MapItemState::StateDefault);
+    void setMaskBrush(const QBrush &brush, MapItemState state = MapItemState::StateDefault);
 
 private:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget);
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 
     struct MapItemPixmapPrivate;
     MapItemPixmapPrivate * const d;
@@ -89,6 +106,8 @@ public:
 
 private:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget);
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 
     struct MapItemShapePrivate;
     MapItemShapePrivate * const d;

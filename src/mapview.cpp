@@ -179,10 +179,14 @@ void MapView::mouseMoveEvent(QMouseEvent *e)
 {
     QGraphicsView::mouseMoveEvent(e);
 
-    if(e->buttons() == Qt::LeftButton)
+    if (e->buttons() == Qt::LeftButton)
     {
         d->isMove = true;
         calculateMapGeometry();
+    }
+    else
+    {
+        emit cursorCoords(d->settings.toCoords(mapToScene(e->pos())));
     }
 }
 
@@ -190,15 +194,6 @@ void MapView::mouseReleaseEvent(QMouseEvent *e)
 {
     QGraphicsView::mouseReleaseEvent(e);
     viewport()->setCursor(Qt::ArrowCursor);
-
-    if(!d->isMove)
-    {
-        QPointF pos = mapToScene(e->pos());
-        QPointF coords = d->settings.toCoords(pos);
-        qDebug() << "coords(" + QString::number(coords.x(), 'f', 8) +
-                    ", " + QString::number(coords.y(), 'f', 8) + ")" <<
-                    "pos:" << pos;
-    }
 
     d->isMove = false;
 }
@@ -240,7 +235,6 @@ void MapView::calculateMapGeometry()
 }
 
 /*********************** MapObject ***********************/
-
 struct MapObject::MapObjectPrivate
 {
     QRectF rect;
