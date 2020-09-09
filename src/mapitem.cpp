@@ -65,6 +65,7 @@ MapItem::~MapItem()
 void MapItem::move(const QPointF &coords)
 {
     setPos(d->settings.toPoint(coords));
+    update();
 }
 
 QPointF MapItem::coords()
@@ -76,11 +77,6 @@ void MapItem::rotate(qreal angle)
 {
     if (d->itemPixmap)
         d->itemPixmap->setRotation(angle);
-}
-
-bool MapItem::isInMove()
-{
-    return d->isMoved;
 }
 
 void MapItem::setSelectable(bool state)
@@ -285,6 +281,21 @@ bool MapItem::isStatic()
     return d->isStatic;
 }
 
+bool MapItem::isInMove()
+{
+    return d->isMoved;
+}
+
+QFont MapItem::font()
+{
+    QFont font;
+
+    if (d->itemText)
+        font = d->itemText->font();
+
+    return font;
+}
+
 QRectF MapItem::boundingRect() const
 {
     if (!d->path.isEmpty())
@@ -335,8 +346,11 @@ QVariant MapItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVa
 {
     if (change == ItemPositionChange)
     {
-        d->isMoved = true;
-        emit moved(d->settings.toCoords(value.toPointF()));
+        if(d->isPressed)
+        {
+            d->isMoved = true;
+            emit moved(d->settings.toCoords(value.toPointF()));
+        }
     }
 
     return QGraphicsItem::itemChange(change, value);
@@ -372,11 +386,11 @@ void MapItem::onPressEvent(bool state)
     d->isPressed = state;
     emit pressed(state);
 
-    if(state)
-        d->isMoved = false;
-
     if(d->isMoved && !state)
+    {
+        d->isMoved = false;
         emit movedTo(d->settings.toCoords(pos()));
+    }
 }
 
 void MapItem::onSelectEvent(bool state)

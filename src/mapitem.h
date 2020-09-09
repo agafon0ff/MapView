@@ -23,7 +23,6 @@ public:
     void move(const QPointF &coords); // QPointF(longitude, latitude)
     QPointF coords();
     void rotate(qreal angle);
-    bool isInMove();
 
     void setSelectable(bool state);
     void setMovable(bool state);
@@ -46,6 +45,8 @@ public:
     void setStaticEllipse(const QPointF &boundLeftTop, const QPointF &boundRightBottom);
 
     bool isStatic();
+    bool isInMove();
+    QFont font();
 
     QRectF boundingRect() const;
     QPainterPath shape() const;
