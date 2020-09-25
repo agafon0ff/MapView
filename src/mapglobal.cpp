@@ -5,6 +5,7 @@
 struct MapGlobal::MapGlobalPrivate
 {
     MapProviders provider = OsmMap;
+    QString cachePath;
     int zoomMax = 23;
     int zoom = zoomMax;
     int tileWidth = 256;
@@ -62,6 +63,16 @@ MapProviders MapGlobal::provider() const
 void MapGlobal::setProvider(MapProviders provider)
 {
     d->provider = provider;
+}
+
+QString MapGlobal::cachePath()
+{
+    return d->cachePath;
+}
+
+void MapGlobal::setCachePath(const QString &path)
+{
+    d->cachePath = path;
 }
 
 QPointF MapGlobal::toCoords(const QPointF &point)

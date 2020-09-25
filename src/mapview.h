@@ -15,10 +15,12 @@ public:
     MapView(QWidget *parent = Q_NULLPTR);
     ~MapView();
 
-    void setProvider(MapProviders provider = GoogleMap);
+    void initMap();
+    void setProvider(MapProviders provider = OsmMap);
+    void setCachePath(const QString &path);
 
     void setZoom(int value);
-    inline int zoom() const;
+    int zoom() const;
 
     void setCenterOn(const QPointF &coords); // QPointF(longitude, latitude)
 

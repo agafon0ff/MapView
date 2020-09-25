@@ -161,8 +161,10 @@ QString MapLoader::createCachePath(const QPoint &pos)
 
 void MapLoader::saveFile(const QString &path, const QByteArray &data)
 {
-    QFileInfo fInfo(QApplication::applicationDirPath() + "/cache" + path);
-    if(!fInfo.dir().exists())
+    if (d->settings.cachePath().isEmpty()) return;
+
+    QFileInfo fInfo(d->settings.cachePath() + path);
+    if (!fInfo.dir().exists())
     {
         QDir dir = fInfo.dir();
         dir.mkpath(".");
@@ -177,13 +179,13 @@ void MapLoader::saveFile(const QString &path, const QByteArray &data)
 
 bool MapLoader::loadFile(const QString &path, QPixmap &pix)
 {
-    bool result = false;
-    QFile file(QApplication::applicationDirPath() + "/cache" + path);
+    if (d->settings.cachePath().isEmpty()) return false;
+    QFile file(d->settings.cachePath() + path);
 
-    if (!file.exists()) return result;
-    if (!file.open(QIODevice::ReadOnly)) return result;
+    if (!file.exists()) return false;
+    if (!file.open(QIODevice::ReadOnly)) return false;
 
-    result = pix.loadFromData(file.readAll());
+    bool result = pix.loadFromData(file.readAll());
     file.close();
 
     return result;

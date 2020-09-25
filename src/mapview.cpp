@@ -74,6 +74,11 @@ void MapView::setProvider(MapProviders provider)
     d->settings.setProvider(provider);
 }
 
+void MapView::setCachePath(const QString &path)
+{
+    d->settings.setCachePath(path);
+}
+
 void MapView::setZoom(int value)
 {
     d->settings.setZoom(qBound(1, value, d->settings.zoomMax()));
@@ -87,10 +92,6 @@ void MapView::setZoom(int value)
 
     setMatrix(matrix);
     calculateMapGeometry();
-
-    qDebug() << "zoom:" << d->settings.zoom() <<
-                "scale:" << static_cast<qint32>(d->scale) <<
-                "factor:" << static_cast<qint32>(d->settings.factor());
 
     emit zoomChanged(d->settings.zoom());
     emit scaleFactorChanged(d->settings.factor());

@@ -30,6 +30,9 @@ public:
     MapProviders provider() const;
     void setProvider(MapProviders provider);
 
+    QString cachePath();
+    void setCachePath(const QString &path);
+
     QPointF toCoords(const QPointF &point);
     QPointF toPoint(const QPointF &coords);
 

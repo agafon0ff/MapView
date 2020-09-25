@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
     itemPixmap->setText("itemPixmap", {0, 30});
     itemPixmap->setZValue(2);
 
-
     MapItem *itemLabel = w.createItem();
     itemLabel->move(QPointF(-21.93381786, 64.15841882));
     itemLabel->setSelectable(true);
@@ -49,7 +48,6 @@ int main(int argc, char *argv[])
     QObject::connect(itemLabel, &MapItem::selected, [&](bool state){ qDebug() << "selected:" << state;});
     QObject::connect(itemLabel, &MapItem::moved, [&](const QPointF &coords){ qDebug() << "moved:" << coords;});
     QObject::connect(itemLabel, &MapItem::movedTo, [&](const QPointF &coords){ qDebug() << "moved to:" << coords;});
-
 
     QVector<QPointF> polygon = {
         {-21.94048047, 64.15304964},
