@@ -196,6 +196,8 @@ void MapView::mouseReleaseEvent(QMouseEvent *e)
     QGraphicsView::mouseReleaseEvent(e);
     viewport()->setCursor(Qt::ArrowCursor);
 
+    emit clickCoords(d->settings.toCoords(mapToScene(e->pos())));
+
     d->isMove = false;
 }
 

@@ -14,15 +14,24 @@ int main(int argc, char *argv[])
     w.resize(800,800);
     w.show();
 
-    w.setProvider(GoogleMap);
+    w.setProvider(OsmMap);
     w.setZoom(16);
     w.setCenterOn(QPointF(-21.94336653, 64.15625817));
+
+    QObject::connect(&w, &MapView::clickCoords,
+                     [=](const QPointF &coords){
+        qDebug() << "coords:"
+                 << QString::number(coords.x(), 'f', 8)
+                 << QString::number(coords.y(), 'f', 8);
+    });
+
+    QObject::connect(&w, &MapView::zoomChanged, [=](int zoom){qDebug() << "zoom:" << zoom;});
 
     MapItem *itemPixmap = w.createItem();
     itemPixmap->move(QPointF(-21.93180084, 64.15701582));
     itemPixmap->setSelectable(true);
     itemPixmap->setMovable(true);
-    itemPixmap->setPixmap(QPixmap("../MapView/test/point.png"), QSize(40, 40));
+    itemPixmap->setPixmap(QPixmap("../test/point.png"), QSize(40, 40));
     itemPixmap->setText("itemPixmap", {0, 30});
     itemPixmap->setZValue(2);
 
@@ -101,8 +110,8 @@ int main(int argc, char *argv[])
     MapItem *itemEllipse = w.createItem();
     itemEllipse->setPen(QPen(QColor(70, 190, 70), 2));
     itemEllipse->setBrush(QBrush(QColor(70, 190, 70, 120)));
-    itemEllipse->setStaticEllipse(QPointF(-21.96008205, 64.16210368),
-                                  QPointF(-21.95424557, 64.15974692));
+    itemEllipse->setStaticEllipse(QPointF(-21.95303321, 64.15305315),
+                                  QPointF(-21.95251286, 64.15282746));
     itemEllipse->setFont(QFont("mono", 12., QFont::Medium));
     itemEllipse->setText("Ellipse");
     itemEllipse->setColor(QColor(70, 190, 70));

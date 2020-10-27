@@ -9,7 +9,9 @@ enum MapProviders
     GoogleLand,
     BingSat,
     BingRoads,
-    OsmMap
+    OsmMap,
+    YandexMap, // Don't work
+    YandexSat  // Don't work
 };
 
 class MapGlobal
