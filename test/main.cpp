@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     w.resize(800,800);
     w.show();
 
-    w.setProvider(OsmMap);
+    w.setProvider(YandexSat);
     w.setZoom(16);
     w.setCenterOn(QPointF(-21.94336653, 64.15625817));
 

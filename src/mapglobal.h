@@ -10,8 +10,8 @@ enum MapProviders
     BingSat,
     BingRoads,
     OsmMap,
-    YandexMap, // Don't work
-    YandexSat  // Don't work
+    YandexMap,
+    YandexSat
 };
 
 class MapGlobal
