@@ -80,6 +80,8 @@ void MapView::setProvider(MapProviders provider)
 
     for (MapItem *item: qAsConst(d->items))
         item->updateCoords();
+
+    d->map->updateTiles();
 }
 
 void MapView::setCachePath(const QString &path)
@@ -248,7 +250,8 @@ void MapView::calculateMapGeometry()
 /*********************** MapObject ***********************/
 struct MapObject::MapObjectPrivate
 {
-    QRectF rect;
+    QRectF tilesRect;
+    QRectF boundingRect;
     qreal tileWidth;
     QMap<QPoint, QPixmap> tiles;
 };
@@ -280,9 +283,24 @@ void MapObject::setTileWidth(qreal tileWidth)
 
 void MapObject::setGeometry(const QRect &rect)
 {
-    for (int i=rect.x(); i<rect.width() + rect.x(); ++i)
+    d->tilesRect = rect;
+    updateTiles();
+}
+
+void MapObject::setBoundingRect(const QRectF &rect)
+{
+    prepareGeometryChange();
+    d->boundingRect = rect;
+    update();
+}
+
+void MapObject::updateTiles()
+{
+    d->tiles.clear();
+
+    for (int i=d->tilesRect.x(); i<d->tilesRect.width() + d->tilesRect.x(); ++i)
     {
-        for (int j=rect.y(); j<rect.height() + rect.y(); ++j)
+        for (int j=d->tilesRect.y(); j<d->tilesRect.height() + d->tilesRect.y(); ++j)
         {
             QPoint pos(i, j);
             if (!d->tiles.contains(pos))
@@ -299,16 +317,9 @@ void MapObject::setGeometry(const QRect &rect)
     update();
 }
 
-void MapObject::setBoundingRect(const QRectF &rect)
-{
-    prepareGeometryChange();
-    d->rect = rect;
-    update();
-}
-
 QRectF MapObject::boundingRect() const
 {
-    return QRectF(d->rect);
+    return QRectF(d->boundingRect);
 }
 
 void MapObject::paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget)

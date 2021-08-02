@@ -65,6 +65,7 @@ public slots:
     void setTileWidth(qreal tileWidth);
     void setGeometry(const QRect &rect);
     void setBoundingRect(const QRectF &rect);
+    void updateTiles();
 
 signals:
     void tileRequest(const QPoint &pos);

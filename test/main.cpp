@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     w.show();
 
     // Set map provider and view settings
-    w.setProvider(YandexSat);
+    w.setProvider(OsmMap);
     w.setZoom(16);
     w.setCenterOn(QPointF(-21.94336653, 64.15625817));
 
@@ -151,8 +151,8 @@ int main(int argc, char *argv[])
     itemLine->setText(lineText, {0, -1000});
 
     // Change map provider
-    QTimer::singleShot(3000, [&]{w.setProvider(GoogleMap); qDebug() << Q_FUNC_INFO;});
-    QTimer::singleShot(6000, [&]{w.setProvider(YandexMap); qDebug() << Q_FUNC_INFO;});
+    QTimer::singleShot(3000, [&]{w.setProvider(GoogleSat); qDebug() << Q_FUNC_INFO;});
+    QTimer::singleShot(6000, [&]{w.setProvider(YandexSat); qDebug() << Q_FUNC_INFO;});
 
     return a.exec();
 }
