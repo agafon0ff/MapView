@@ -10,14 +10,18 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    // Create map-widget
     MapView w;
     w.resize(800,800);
     w.show();
 
+    // Set map provider and view settings
     w.setProvider(YandexSat);
     w.setZoom(16);
     w.setCenterOn(QPointF(-21.94336653, 64.15625817));
 
+    // Receive mouse-click signals
     QObject::connect(&w, &MapView::clickCoords,
                      [=](const QPointF &coords){
         qDebug() << "coords:"
@@ -25,8 +29,10 @@ int main(int argc, char *argv[])
                  << QString::number(coords.y(), 'f', 8);
     });
 
+    // Receive mouse-wheel zoom signals
     QObject::connect(&w, &MapView::zoomChanged, [=](int zoom){qDebug() << "zoom:" << zoom;});
 
+    // Create item with pixmap and text
     MapItem *itemPixmap = w.createItem();
     itemPixmap->move(QPointF(-21.93180084, 64.15701582));
     itemPixmap->setSelectable(true);
@@ -35,6 +41,7 @@ int main(int argc, char *argv[])
     itemPixmap->setText("itemPixmap", {0, 30});
     itemPixmap->setZValue(2);
 
+    // Create item with text
     MapItem *itemLabel = w.createItem();
     itemLabel->move(QPointF(-21.93381786, 64.15841882));
     itemLabel->setSelectable(true);
@@ -52,12 +59,14 @@ int main(int argc, char *argv[])
 
     itemLabel->setColor(QColor(Qt::blue));
 
+    // Receive signals when item changed
     QObject::connect(itemLabel, &MapItem::pressed, [&](bool state){ qDebug() << "pressed:" << state;});
     QObject::connect(itemLabel, &MapItem::hovered, [&](bool state){ qDebug() << "hovered:" << state;});
     QObject::connect(itemLabel, &MapItem::selected, [&](bool state){ qDebug() << "selected:" << state;});
     QObject::connect(itemLabel, &MapItem::moved, [&](const QPointF &coords){ qDebug() << "moved:" << coords;});
     QObject::connect(itemLabel, &MapItem::movedTo, [&](const QPointF &coords){ qDebug() << "moved to:" << coords;});
 
+    // Create polygon item
     QVector<QPointF> polygon = {
         {-21.94048047, 64.15304964},
         {-21.94271207, 64.15447622},
@@ -80,6 +89,7 @@ int main(int argc, char *argv[])
     itemPoligon->setBrush(QBrush(QColor(190, 70, 70, 120)));
     itemPoligon->setStaticPath(polygon, true);
 
+    // Create path item
     QVector<QPointF> path = {
         {-21.95284545, 64.15330923},
         {-21.95283473, 64.15344020},
@@ -107,6 +117,7 @@ int main(int argc, char *argv[])
     itemPath->setPen(QPen(QColor(Qt::blue), 3));
     itemPath->setStaticPath(path, false);
 
+    // Create ellipse item
     MapItem *itemEllipse = w.createItem();
     itemEllipse->setPen(QPen(QColor(70, 190, 70), 2));
     itemEllipse->setBrush(QBrush(QColor(70, 190, 70, 120)));
@@ -116,6 +127,7 @@ int main(int argc, char *argv[])
     itemEllipse->setText("Ellipse");
     itemEllipse->setColor(QColor(70, 190, 70));
 
+    // Create rect item
     MapItem *itemRect = w.createItem();
     itemRect->setPen(QPen(QColor(210, 160, 20), 2));
     itemRect->setBrush(QBrush(QColor(210, 210, 77, 120)));
@@ -125,6 +137,7 @@ int main(int argc, char *argv[])
     itemRect->setText("Rect");
     itemRect->setColor(QColor(210, 160, 20));
 
+    // Create line item with text
     MapItem *itemLine = w.createItem();
     itemLine->setPen(QPen(QColor(210, 160, 20), 2));
     itemLine->setColor(QColor(210, 160, 20));
@@ -132,9 +145,12 @@ int main(int argc, char *argv[])
 
     QVector<QPointF> line = { {-21.95071578, 64.15693785}, {-21.94615602, 64.15699873} };
     itemLine->setStaticPath(line);
+
+    // Calculate line length and show
     QString lineText(QString::number(MapGlobal::instance().distance(line.at(0), line.at(1)), 'f', 0) + "m");
     itemLine->setText(lineText, {0, -1000});
 
+    // Change map provider
     QTimer::singleShot(3000, [&]{w.setProvider(GoogleMap); qDebug() << Q_FUNC_INFO;});
     QTimer::singleShot(6000, [&]{w.setProvider(YandexMap); qDebug() << Q_FUNC_INFO;});
 
