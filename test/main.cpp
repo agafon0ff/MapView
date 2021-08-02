@@ -125,5 +125,18 @@ int main(int argc, char *argv[])
     itemRect->setText("Rect");
     itemRect->setColor(QColor(210, 160, 20));
 
+    MapItem *itemLine = w.createItem();
+    itemLine->setPen(QPen(QColor(210, 160, 20), 2));
+    itemLine->setColor(QColor(210, 160, 20));
+    itemLine->setBrush(QBrush(QColor(210, 210, 77, 120)));
+
+    QVector<QPointF> line = { {-21.95071578, 64.15693785}, {-21.94615602, 64.15699873} };
+    itemLine->setStaticPath(line);
+    QString lineText(QString::number(MapGlobal::instance().distance(line.at(0), line.at(1)), 'f', 0) + "m");
+    itemLine->setText(lineText, {0, -1000});
+
+    QTimer::singleShot(3000, [&]{w.setProvider(GoogleMap); qDebug() << Q_FUNC_INFO;});
+    QTimer::singleShot(6000, [&]{w.setProvider(YandexMap); qDebug() << Q_FUNC_INFO;});
+
     return a.exec();
 }

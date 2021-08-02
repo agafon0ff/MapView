@@ -29,6 +29,7 @@ struct MapItem::MapItemPrivate
     QFont   font = QFont("mono", 12, QFont::Medium);
     QColor  color = QColor(Qt::black);
     MapItemType type = MapItemType::DynamicItem;
+    QPointF textIndent = {0., 0.};
 
     QMap<MapItemState, QPen>   pens;
     QMap<MapItemState, QBrush> brushes;
@@ -189,8 +190,9 @@ void MapItem::setText(const QString &text, const QPoint &indent)
     if (!d->path.isEmpty())
         pathIndent = d->path.boundingRect().center();
 
+    d->textIndent = indent;
     d->itemText->setPos(-d->itemText->boundingRect().center()
-                        + static_cast<QPointF>(indent) + pathIndent);
+                        + static_cast<QPointF>(d->textIndent) + pathIndent);
 }
 
 void MapItem::setPath(const QPainterPath &path)
@@ -328,6 +330,14 @@ void MapItem::updateCoords()
         setStaticRect(d->coords.at(0), d->coords.at(1));
     else if (d->type == MapItemType::StaticEllipse)
         setStaticEllipse(d->coords.at(0), d->coords.at(1));
+
+    if (d->itemText && !d->path.isEmpty())
+    {
+        QPointF pathIndent(0., 0.);
+        pathIndent = d->path.boundingRect().center();
+        d->itemText->setPos(-d->itemText->boundingRect().center()
+                            + static_cast<QPointF>(d->textIndent) + pathIndent);
+    }
 }
 
 QRectF MapItem::boundingRect() const

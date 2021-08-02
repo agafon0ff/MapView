@@ -38,6 +38,8 @@ public:
     QPointF toCoords(const QPointF &point);
     QPointF toPoint(const QPointF &coords);
 
+    float distance(const QPointF &coords1, const QPointF &coords2);
+
 protected:
     MapGlobal();
     ~MapGlobal();
