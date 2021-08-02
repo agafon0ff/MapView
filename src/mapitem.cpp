@@ -19,6 +19,7 @@ struct MapItem::MapItemPrivate
     bool isSelectable = false;
     bool isMovable    = false;
     bool isStatic     = false;
+    bool isClosed     = false;
 
     bool isMoved = false;
     bool isPressed = false;
@@ -27,23 +28,27 @@ struct MapItem::MapItemPrivate
 
     QFont   font = QFont("mono", 12, QFont::Medium);
     QColor  color = QColor(Qt::black);
+    MapItemType type = MapItemType::DynamicItem;
 
     QMap<MapItemState, QPen>   pens;
     QMap<MapItemState, QBrush> brushes;
 
     QPainterPath path;
+    QVector<QPointF> coords;
 };
 
 MapItem::MapItem(QGraphicsItem *parent) : QGraphicsObject(parent),
     d(new MapItemPrivate)
 {
-    d->pens = { {MapItemState::StateDefault,    QPen(QBrush(QColor(Qt::black)), 1)},
-                {MapItemState::StateHovered,    QPen(QBrush(QColor(Qt::black)), 1)},
-                {MapItemState::StateSelected,   QPen(QBrush(QColor(Qt::black)), 1)} };
+    d->pens = { {MapItemState::Default,    QPen(QBrush(QColor(Qt::black)), 1)},
+                {MapItemState::Hovered,    QPen(QBrush(QColor(Qt::black)), 1)},
+                {MapItemState::Selected,   QPen(QBrush(QColor(Qt::black)), 1)} };
 
-    d->brushes = { {MapItemState::StateDefault,     QBrush(QColor(0, 0, 0, 0))},
-                   {MapItemState::StateHovered,     QBrush(QColor(0, 0, 0, 0))},
-                   {MapItemState::StateSelected,    QBrush(QColor(0, 0, 0, 0))} };
+    d->brushes = { {MapItemState::Default,     QBrush(QColor(0, 0, 0, 0))},
+                   {MapItemState::Hovered,     QBrush(QColor(0, 0, 0, 0))},
+                   {MapItemState::Selected,    QBrush(QColor(0, 0, 0, 0))} };
+
+    d->coords.append(QPointF(0., 0.));
 
     setZValue(1);
     setAcceptHoverEvents(true);
@@ -64,6 +69,7 @@ MapItem::~MapItem()
 
 void MapItem::move(const QPointF &coords)
 {
+    d->coords[0] = coords;
     setPos(d->settings.toPoint(coords));
     update();
 }
@@ -219,6 +225,7 @@ void MapItem::setStaticPath(const QVector<QPointF> &points, bool close)
 {
     prepareGeometryChange();
     d->isStatic = true;
+    d->type = MapItemType::StaticPath;
 
 #if QT_VERSION >= 0x051300
     d->path.clear();
@@ -226,10 +233,13 @@ void MapItem::setStaticPath(const QVector<QPointF> &points, bool close)
     d->path = QPainterPath();
 #endif
 
+    d->coords = points;
+    d->isClosed = close;
+
     for (int i=0; i<points.size(); ++i)
     {
         const QPointF &coords = points.at(i);
-        const QPointF point = d->settings.toPoint(coords);
+        QPointF &&point = d->settings.toPoint(coords);
 
         if (i == 0) d->path.moveTo(point);
         else d->path.lineTo(point);
@@ -244,6 +254,11 @@ void MapItem::setStaticRect(const QPointF &boundLeftTop, const QPointF &boundRig
 {
     prepareGeometryChange();
     d->isStatic = true;
+    d->type = MapItemType::StaticRect;
+
+    d->coords.clear();
+    d->coords.append(boundLeftTop);
+    d->coords.append(boundRightBottom);
 
     QRectF rect = QRectF(d->settings.toPoint(boundLeftTop),
                          d->settings.toPoint(boundRightBottom));
@@ -262,6 +277,11 @@ void MapItem::setStaticEllipse(const QPointF &boundLeftTop, const QPointF &bound
 {
     prepareGeometryChange();
     d->isStatic = true;
+    d->type = MapItemType::StaticEllipse;
+
+    d->coords.clear();
+    d->coords.append(boundLeftTop);
+    d->coords.append(boundRightBottom);
 
     QRectF rect = QRectF(d->settings.toPoint(boundLeftTop),
                          d->settings.toPoint(boundRightBottom));
@@ -296,11 +316,25 @@ QFont MapItem::font()
     return font;
 }
 
+void MapItem::updateCoords()
+{
+    if (d->coords.isEmpty()) return;
+
+    if (d->type == MapItemType::DynamicItem)
+        move(d->coords.at(0));
+    else if (d->type == MapItemType::StaticPath)
+        setStaticPath(d->coords, d->isClosed);
+    else if (d->type == MapItemType::StaticRect)
+        setStaticRect(d->coords.at(0), d->coords.at(1));
+    else if (d->type == MapItemType::StaticEllipse)
+        setStaticEllipse(d->coords.at(0), d->coords.at(1));
+}
+
 QRectF MapItem::boundingRect() const
 {
     if (!d->path.isEmpty())
     {
-        qreal penWidth = d->pens[MapItemState::StateDefault].widthF();
+        qreal penWidth = d->pens[MapItemState::Default].widthF();
         return d->path.boundingRect().adjusted(-penWidth, -penWidth,
                                                penWidth, penWidth);
     }
@@ -329,9 +363,9 @@ void MapItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWi
     bool isHovered = item->state & QStyle::State_MouseOver;
     bool isSelected = item->state & QStyle::State_Selected;
 
-    MapItemState state = MapItemState::StateDefault;
-    if (isSelected) state = MapItemState::StateSelected;
-    else if(isHovered) state = MapItemState::StateHovered;
+    MapItemState state = MapItemState::Default;
+    if (isSelected) state = MapItemState::Selected;
+    else if(isHovered) state = MapItemState::Hovered;
 
     QPen pen = d->pens[state];
     pen.setWidthF(pen.widthF() * d->settings.factor());
@@ -421,13 +455,13 @@ MapItemPixmap::MapItemPixmap(const QPixmap &pixmap, QGraphicsItem *parent) :
 {
     setAcceptHoverEvents(true);
 
-    d->pixmaps = { { MapItemState::StateDefault, pixmap },
-                   { MapItemState::StateHovered, QPixmap() },
-                   { MapItemState::StateSelected, QPixmap() } };
+    d->pixmaps = { { MapItemState::Default, pixmap },
+                   { MapItemState::Hovered, QPixmap() },
+                   { MapItemState::Selected, QPixmap() } };
 
-    d->brushes = { {MapItemState::StateDefault,     QBrush(Qt::NoBrush)},
-                   {MapItemState::StateHovered,     QBrush(Qt::NoBrush)},
-                   {MapItemState::StateSelected,    QBrush(Qt::NoBrush)} };
+    d->brushes = { {MapItemState::Default,     QBrush(Qt::NoBrush)},
+                   {MapItemState::Hovered,     QBrush(Qt::NoBrush)},
+                   {MapItemState::Selected,    QBrush(Qt::NoBrush)} };
 }
 
 MapItemPixmap::~MapItemPixmap()
@@ -461,29 +495,29 @@ void MapItemPixmap::paint(QPainter *painter, const QStyleOptionGraphicsItem *ite
 
     if (isSelected)
     {
-        if (!d->pixmaps.value(MapItemState::StateSelected).isNull())
-            setPixmap(d->pixmaps.value(MapItemState::StateSelected));
+        if (!d->pixmaps.value(MapItemState::Selected).isNull())
+            setPixmap(d->pixmaps.value(MapItemState::Selected));
 
-        if (d->brushes.value(MapItemState::StateSelected) != Qt::NoBrush)
+        if (d->brushes.value(MapItemState::Selected) != Qt::NoBrush)
         {
-            painter->setClipRegion(QRegion(d->pixmaps.value(MapItemState::StateDefault).mask()));
-            painter->setBrush(d->brushes.value(MapItemState::StateSelected));
+            painter->setClipRegion(QRegion(d->pixmaps.value(MapItemState::Default).mask()));
+            painter->setBrush(d->brushes.value(MapItemState::Selected));
             painter->drawRect(boundingRect());
         }
     }
     else if (isHovered)
     {
-        if (!d->pixmaps.value(MapItemState::StateHovered).isNull())
-            setPixmap(d->pixmaps.value(MapItemState::StateHovered));
+        if (!d->pixmaps.value(MapItemState::Hovered).isNull())
+            setPixmap(d->pixmaps.value(MapItemState::Hovered));
 
-        if (d->brushes.value(MapItemState::StateHovered) != Qt::NoBrush)
+        if (d->brushes.value(MapItemState::Hovered) != Qt::NoBrush)
         {
-            painter->setClipRegion(QRegion(d->pixmaps.value(MapItemState::StateDefault).mask()));
-            painter->setBrush(d->brushes.value(MapItemState::StateHovered));
+            painter->setClipRegion(QRegion(d->pixmaps.value(MapItemState::Default).mask()));
+            painter->setBrush(d->brushes.value(MapItemState::Hovered));
             painter->drawRect(boundingRect());
         }
     }
-    else setPixmap(d->pixmaps.value(MapItemState::StateDefault));
+    else setPixmap(d->pixmaps.value(MapItemState::Default));
 
     dynamic_cast<MapItem*>(parentItem())->onHoverEvent(isHovered);
     dynamic_cast<MapItem*>(parentItem())->onSelectEvent(isSelected);
@@ -516,13 +550,13 @@ MapItemPath::MapItemPath(const QPainterPath &path, QGraphicsItem *parent):
     setAcceptHoverEvents(true);
 
     d->path = path;
-    d->pens = { {MapItemState::StateDefault,    QPen(QBrush(QColor(Qt::black)), 1)},
-                {MapItemState::StateHovered,    QPen(QBrush(QColor(Qt::black)), 1)},
-                {MapItemState::StateSelected,   QPen(QBrush(QColor(Qt::black)), 1)} };
+    d->pens = { {MapItemState::Default,    QPen(QBrush(QColor(Qt::black)), 1)},
+                {MapItemState::Hovered,    QPen(QBrush(QColor(Qt::black)), 1)},
+                {MapItemState::Selected,   QPen(QBrush(QColor(Qt::black)), 1)} };
 
-    d->brushes = { {MapItemState::StateDefault,     QBrush(QColor(0, 0, 0, 0))},
-                   {MapItemState::StateHovered,     QBrush(QColor(0, 0, 0, 0))},
-                   {MapItemState::StateSelected,    QBrush(QColor(0, 0, 0, 0))} };
+    d->brushes = { {MapItemState::Default,     QBrush(QColor(0, 0, 0, 0))},
+                   {MapItemState::Hovered,     QBrush(QColor(0, 0, 0, 0))},
+                   {MapItemState::Selected,    QBrush(QColor(0, 0, 0, 0))} };
 }
 
 MapItemPath::~MapItemPath()
@@ -565,9 +599,9 @@ void MapItemPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *item,
     if (parentItem()->isSelected() != isSelected)
         parentItem()->setSelected(isSelected);
 
-    MapItemState state = MapItemState::StateDefault;
-    if (isSelected) state = MapItemState::StateSelected;
-    else if(isHovered) state = MapItemState::StateHovered;
+    MapItemState state = MapItemState::Default;
+    if (isSelected) state = MapItemState::Selected;
+    else if(isHovered) state = MapItemState::Hovered;
 
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setBrush(d->brushes.value(state));

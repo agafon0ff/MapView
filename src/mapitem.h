@@ -6,9 +6,17 @@
 
 enum class MapItemState
 {
-    StateDefault = 0,
-    StateHovered,
-    StateSelected
+    Default = 0,
+    Hovered,
+    Selected
+};
+
+enum class MapItemType
+{
+    DynamicItem = 0,
+    StaticPath,
+    StaticRect,
+    StaticEllipse
 };
 
 class MapItemPixmap;
@@ -27,13 +35,13 @@ public:
     void setSelectable(bool state);
     void setMovable(bool state);
 
-    void setPen(const QPen &pen, MapItemState state = MapItemState::StateDefault);
-    void setBrush(const QBrush &brush, MapItemState state = MapItemState::StateDefault);
+    void setPen(const QPen &pen, MapItemState state = MapItemState::Default);
+    void setBrush(const QBrush &brush, MapItemState state = MapItemState::Default);
     void setFont(const QFont &font);
     void setColor(const QColor &color); //text color
-    void setMaskBrush(const QBrush &brush, MapItemState state = MapItemState::StateSelected); // if used as pixmap item
+    void setMaskBrush(const QBrush &brush, MapItemState state = MapItemState::Selected); // if used as pixmap item
 
-    void setPixmap(const QPixmap &pixmap, const QSize &size, MapItemState state = MapItemState::StateDefault);
+    void setPixmap(const QPixmap &pixmap, const QSize &size, MapItemState state = MapItemState::Default);
     void setText(const QString &text, const QPoint &indent = QPoint(0, 0));
 
     void setPath(const QPainterPath &path);
@@ -47,6 +55,8 @@ public:
     bool isStatic();
     bool isInMove();
     QFont font();
+
+    void updateCoords();
 
     QRectF boundingRect() const;
     QPainterPath shape() const;
@@ -81,8 +91,8 @@ public:
     MapItemPixmap(const QPixmap &pixmap, QGraphicsItem *parent);
     ~MapItemPixmap();
 
-    void setItemPixmap(const QPixmap &pixmap, MapItemState state = MapItemState::StateDefault);
-    void setMaskBrush(const QBrush &brush, MapItemState state = MapItemState::StateDefault);
+    void setItemPixmap(const QPixmap &pixmap, MapItemState state = MapItemState::Default);
+    void setMaskBrush(const QBrush &brush, MapItemState state = MapItemState::Default);
 
 private:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *item, QWidget *widget);
@@ -100,8 +110,8 @@ public:
     MapItemPath(const QPainterPath &path, QGraphicsItem *parent);
     ~MapItemPath();
 
-    void setPen(const QPen &pen, MapItemState state = MapItemState::StateDefault);
-    void setBrush(const QBrush &brush, MapItemState state = MapItemState::StateDefault);
+    void setPen(const QPen &pen, MapItemState state = MapItemState::Default);
+    void setBrush(const QBrush &brush, MapItemState state = MapItemState::Default);
 
     QRectF boundingRect() const;
     QPainterPath shape() const;

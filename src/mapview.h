@@ -15,7 +15,6 @@ public:
     MapView(QWidget *parent = Q_NULLPTR);
     ~MapView();
 
-    void initMap();
     void setProvider(MapProviders provider = OsmMap);
     void setCachePath(const QString &path);
 

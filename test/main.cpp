@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
 //    itemLabel->setEllipse({50, 30});
     itemLabel->setText("Label");
     itemLabel->setPen(QPen(QColor(Qt::blue), 1));
-    itemLabel->setPen(QPen(QColor(Qt::gray), 1), MapItemState::StateHovered);
-    itemLabel->setPen(QPen(QColor(Qt::red), 1), MapItemState::StateSelected);
+    itemLabel->setPen(QPen(QColor(Qt::gray), 1), MapItemState::Hovered);
+    itemLabel->setPen(QPen(QColor(Qt::red), 1), MapItemState::Selected);
 
     itemLabel->setBrush(QBrush(QColor("#eee")));
-    itemLabel->setBrush(QBrush(QColor("#bbf")), MapItemState::StateHovered);
-    itemLabel->setBrush(QBrush(QColor("#fbb")), MapItemState::StateSelected);
+    itemLabel->setBrush(QBrush(QColor("#bbf")), MapItemState::Hovered);
+    itemLabel->setBrush(QBrush(QColor("#fbb")), MapItemState::Selected);
 
     itemLabel->setColor(QColor(Qt::blue));
 

@@ -71,7 +71,15 @@ MapView::~MapView()
 
 void MapView::setProvider(MapProviders provider)
 {
+    if (provider == d->settings.provider()) return;
+
+    QPointF &&sceneCenter = mapToScene(viewport()->rect().center());
+    QPointF &&center = d->settings.toCoords(sceneCenter);
     d->settings.setProvider(provider);
+    setCenterOn(center);
+
+    for (MapItem *item: qAsConst(d->items))
+        item->updateCoords();
 }
 
 void MapView::setCachePath(const QString &path)
