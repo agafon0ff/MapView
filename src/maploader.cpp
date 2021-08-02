@@ -20,8 +20,8 @@ static const QMap<int, QString> MAP_PROVIDERS = {
     {BingSat,   "http://ecn.t0.tiles.virtualearth.net/tiles/a%1.jpeg?g=0"},
     {BingRoads, "http://ecn.dynamic.t0.tiles.virtualearth.net/comp/CompositionHandler/%1?mkt=ru-ru&it=G,VE,BX,L,LA&shading=hill"},
     {OsmMap,    "http://a.tile.openstreetmap.fr/hot/%3/%1/%2.png"},
-    {YandexMap, "http://vec01.maps.yandex.net/tiles?l=map&lang=ru-RU&v=2.26.0&x=%1&y=%2&z=%3"}, // Don't work
-    {YandexSat, "https://sat01.maps.yandex.net/tiles?l=sat&v=3.379.0&x=%1&y=%2&z=%3"}           // Don't work
+    {YandexMap, "http://vec01.maps.yandex.net/tiles?l=map&lang=ru-RU&v=2.26.0&x=%1&y=%2&z=%3"},
+    {YandexSat, "https://sat01.maps.yandex.net/tiles?l=sat&v=3.379.0&x=%1&y=%2&z=%3"}
 };
 
 static const QMap<int, QString> MAP_CACHE_PATHS = {
@@ -31,8 +31,8 @@ static const QMap<int, QString> MAP_CACHE_PATHS = {
     {BingSat,   "/vesat/z%1/%2/x%3/%4/y%5.jpg"},
     {BingRoads, "/bing_roads_ru/z%1/%2/x%3/%4/y%5.png"},
     {OsmMap,    "/osm/z%1/%2/x%3/%4/y%5.png"},
-    {YandexMap, "/yam/z%1/%2/x%3/%4/y%5.png"}, // Don't work
-    {YandexSat, "/yas/z%1/%2/x%3/%4/y%5.png"}  // Don't work
+    {YandexMap, "/yam/z%1/%2/x%3/%4/y%5.png"},
+    {YandexSat, "/yas/z%1/%2/x%3/%4/y%5.png"}
 };
 
 struct MapLoader::MapLoaderPrivate

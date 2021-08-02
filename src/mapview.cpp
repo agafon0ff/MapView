@@ -310,13 +310,15 @@ void MapObject::paint(QPainter *painter, const QStyleOptionGraphicsItem *item, Q
 
     painter->setPen(QPen(Qt::NoPen));
 
-    foreach (const QPoint &pos, d->tiles.keys())
+    QMapIterator<QPoint, QPixmap> it(d->tiles);
+    while (it.hasNext())
     {
-        const QRectF rect(static_cast<qreal>(pos.x()) * d->tileWidth,
-                    static_cast<qreal>(pos.y()) * d->tileWidth,
-                    d->tileWidth, d->tileWidth);
+        it.next();
+        const QRectF rect(static_cast<qreal>(it.key().x()) * d->tileWidth,
+                          static_cast<qreal>(it.key().y()) * d->tileWidth,
+                          d->tileWidth, d->tileWidth);
 
-        const QPixmap pix = d->tiles.value(pos);
+        const QPixmap pix = d->tiles.value(it.key());
         painter->drawPixmap(rect, pix, pix.rect());
         painter->drawRect(rect);
     }
