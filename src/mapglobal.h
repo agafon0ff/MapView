@@ -11,7 +11,11 @@ enum MapProviders
     BingRoads,
     OsmMap,
     YandexMap,
-    YandexSat
+    YandexSat,
+    StamenToner,
+    ThunderforestTransport,
+    ThunderforestLandscape,
+    ThunderforestOutdoors,
 };
 
 class MapGlobal
