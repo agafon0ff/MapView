@@ -72,7 +72,6 @@ void MapItem::move(const QPointF &coords)
 {
     d->coords[0] = coords;
     setPos(d->settings.toPoint(coords));
-    update();
 }
 
 QPointF MapItem::coords()
@@ -98,6 +97,14 @@ void MapItem::setSelectable(bool state)
         d->itemPath->setFlag(QGraphicsItem::ItemIsSelectable, state);
 }
 
+void MapItem::setSelected(bool state)
+{
+    QGraphicsObject::setSelected(state);
+
+    if (d->itemPixmap)
+        d->itemPixmap->setSelected(state);
+}
+
 void MapItem::setMovable(bool state)
 {
     d->isMovable = state;
@@ -112,7 +119,13 @@ void MapItem::setMovable(bool state)
 
 void MapItem::setPen(const QPen &pen, MapItemState state)
 {
-    d->pens[state] = pen;
+    if (state == MapItemState::AllState)
+    {
+        d->pens[MapItemState::Default] = pen;
+        d->pens[MapItemState::Hovered] = pen;
+        d->pens[MapItemState::Selected] = pen;
+    }
+    else d->pens[state] = pen;
 
     if (d->itemPath)
         d->itemPath->setPen(pen, state);
@@ -120,7 +133,14 @@ void MapItem::setPen(const QPen &pen, MapItemState state)
 
 void MapItem::setBrush(const QBrush &brush, MapItemState state)
 {
-    d->brushes[state] = brush;
+    if (state == MapItemState::AllState)
+    {
+        d->brushes[MapItemState::Default] = brush;
+        d->brushes[MapItemState::Hovered] = brush;
+        d->brushes[MapItemState::Selected] = brush;
+    }
+    else d->brushes[state] = brush;
+
 
     if (d->itemPath)
         d->itemPath->setBrush(brush ,state);
@@ -298,6 +318,11 @@ void MapItem::setStaticEllipse(const QPointF &boundLeftTop, const QPointF &bound
     update(d->path.boundingRect());
 }
 
+QVector<QPointF> MapItem::coordsList()
+{
+    return d->coords;
+}
+
 bool MapItem::isStatic()
 {
     return d->isStatic;
@@ -423,12 +448,12 @@ void MapItem::checkScale()
     }
 }
 
-void MapItem::onPressEvent(bool state)
+void MapItem::onPressEvent(bool state, Qt::MouseButton button)
 {
     if (d->isPressed == state) return;
 
     d->isPressed = state;
-    emit pressed(state);
+    emit pressed(state, button);
 
     if(d->isMoved && !state)
     {
@@ -527,7 +552,6 @@ void MapItemPixmap::paint(QPainter *painter, const QStyleOptionGraphicsItem *ite
             painter->drawRect(boundingRect());
         }
     }
-    else setPixmap(d->pixmaps.value(MapItemState::Default));
 
     dynamic_cast<MapItem*>(parentItem())->onHoverEvent(isHovered);
     dynamic_cast<MapItem*>(parentItem())->onSelectEvent(isSelected);
@@ -536,13 +560,13 @@ void MapItemPixmap::paint(QPainter *painter, const QStyleOptionGraphicsItem *ite
 void MapItemPixmap::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsItem::mousePressEvent(event);
-    dynamic_cast<MapItem*>(parentItem())->onPressEvent(true);
+    dynamic_cast<MapItem*>(parentItem())->onPressEvent(true, event->button());
 }
 
 void MapItemPixmap::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsItem::mouseReleaseEvent(event);
-    dynamic_cast<MapItem*>(parentItem())->onPressEvent(false);
+    dynamic_cast<MapItem*>(parentItem())->onPressEvent(false, event->button());
 }
 
 //! \brief The MapItemPath class
@@ -576,13 +600,27 @@ MapItemPath::~MapItemPath()
 
 void MapItemPath::setPen(const QPen &pen, MapItemState state)
 {
-    d->pens[state] = pen;
+    if (state == MapItemState::AllState)
+    {
+        d->pens[MapItemState::Default] = pen;
+        d->pens[MapItemState::Hovered] = pen;
+        d->pens[MapItemState::Selected] = pen;
+    }
+    else d->pens[state] = pen;
+
     update(boundingRect());
 }
 
 void MapItemPath::setBrush(const QBrush &brush, MapItemState state)
 {
-    d->brushes[state] = brush;
+    if (state == MapItemState::AllState)
+    {
+        d->brushes[MapItemState::Default] = brush;
+        d->brushes[MapItemState::Hovered] = brush;
+        d->brushes[MapItemState::Selected] = brush;
+    }
+    else d->brushes[state] = brush;
+
     update(boundingRect());
 }
 
@@ -625,11 +663,11 @@ void MapItemPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *item,
 void MapItemPath::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsItem::mousePressEvent(event);
-    dynamic_cast<MapItem*>(parentItem())->onPressEvent(true);
+    dynamic_cast<MapItem*>(parentItem())->onPressEvent(true, event->button());
 }
 
 void MapItemPath::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     QGraphicsItem::mouseReleaseEvent(event);
-    dynamic_cast<MapItem*>(parentItem())->onPressEvent(false);
+    dynamic_cast<MapItem*>(parentItem())->onPressEvent(false, event->button());
 }

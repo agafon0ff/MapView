@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
     w.setProvider(OsmMap);
     w.setZoom(16);
     w.setCenterOn(QPointF(-21.94336653, 64.15625817));
+    w.setCachePath(".");
 
     // Receive mouse-click signals
     QObject::connect(&w, &MapView::clickCoords,

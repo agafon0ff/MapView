@@ -16,12 +16,15 @@ public:
     ~MapView();
 
     void setProvider(MapProviders provider = OsmMap);
+    MapProviders provider();
+
     void setCachePath(const QString &path);
 
     void setZoom(int value);
     int zoom() const;
 
     void setCenterOn(const QPointF &coords); // QPointF(longitude, latitude)
+    QPointF center();
 
     MapItem *createItem();
     void removeItem(MapItem *item);
@@ -31,7 +34,8 @@ signals:
     void zoomChanged(int zoom);
     void scaleFactorChanged(qreal factor);
     void cursorCoords(const QPointF &point);
-    void clickCoords(const QPointF &point);
+    void pressCoords(const QPointF &point, bool pressed, Qt::MouseButton btn);
+    void clickCoords(const QPointF &point, Qt::MouseButton btn);
 
 private:
 

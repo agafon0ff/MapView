@@ -43,7 +43,7 @@ MapView::MapView(QWidget *parent) : QGraphicsView(parent),
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setCacheMode(QGraphicsView::CacheBackground);
-    viewport()->setCursor(Qt::ArrowCursor);
+    viewport()->setCursor(cursor());
 
     QGraphicsScene *scene = new QGraphicsScene(this);
     setScene(scene);
@@ -84,6 +84,11 @@ void MapView::setProvider(MapProviders provider)
     d->map->updateTiles();
 }
 
+MapProviders MapView::provider()
+{
+    return d->settings.provider();
+}
+
 void MapView::setCachePath(const QString &path)
 {
     d->settings.setCachePath(path);
@@ -116,6 +121,12 @@ void MapView::setCenterOn(const QPointF &coords)
 {
     centerOn(d->settings.toPoint(coords));
     calculateMapGeometry();
+}
+
+QPointF MapView::center()
+{
+    QPointF &&sceneCenter = mapToScene(viewport()->rect().center());
+    return MapGlobal::instance().toCoords(sceneCenter);
 }
 
 MapItem *MapView::createItem()
@@ -184,6 +195,7 @@ void MapView::drawBackground(QPainter *painter, const QRectF &r)
 void MapView::mousePressEvent(QMouseEvent *e)
 {
     QGraphicsView::mousePressEvent(e);
+    emit pressCoords(d->settings.toCoords(mapToScene(e->pos())), true, e->button());
 }
 
 void MapView::mouseMoveEvent(QMouseEvent *e)
@@ -204,9 +216,12 @@ void MapView::mouseMoveEvent(QMouseEvent *e)
 void MapView::mouseReleaseEvent(QMouseEvent *e)
 {
     QGraphicsView::mouseReleaseEvent(e);
-    viewport()->setCursor(Qt::ArrowCursor);
+    viewport()->setCursor(cursor());
 
-    emit clickCoords(d->settings.toCoords(mapToScene(e->pos())));
+    if (!d->isMove)
+        emit clickCoords(d->settings.toCoords(mapToScene(e->pos())), e->button());
+
+    emit pressCoords(d->settings.toCoords(mapToScene(e->pos())), false, e->button());
 
     d->isMove = false;
 }

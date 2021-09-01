@@ -8,7 +8,8 @@ enum class MapItemState
 {
     Default = 0,
     Hovered,
-    Selected
+    Selected,
+    AllState
 };
 
 enum class MapItemType
@@ -33,6 +34,8 @@ public:
     void rotate(qreal angle);
 
     void setSelectable(bool state);
+    void setSelected(bool state);
+
     void setMovable(bool state);
 
     void setPen(const QPen &pen, MapItemState state = MapItemState::Default);
@@ -52,6 +55,8 @@ public:
     void setStaticRect(const QPointF &boundLeftTop, const QPointF &boundRightBottom);
     void setStaticEllipse(const QPointF &boundLeftTop, const QPointF &boundRightBottom);
 
+    QVector<QPointF> coordsList();
+
     bool isStatic();
     bool isInMove();
     QFont font();
@@ -64,7 +69,7 @@ public:
 signals:
     void selected(bool state);
     void hovered(bool state);
-    void pressed(bool state);
+    void pressed(bool state, Qt::MouseButton button);
     void moved(const QPointF &coords);
     void movedTo(const QPointF &coords);
 
@@ -73,7 +78,7 @@ private:
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
     void checkScale();
 
-    void onPressEvent(bool state);
+    void onPressEvent(bool state, Qt::MouseButton button);
     void onSelectEvent(bool state);
     void onHoverEvent(bool state);
 
