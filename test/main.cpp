@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <QPolygon>
+#include <QComboBox>
 
 int main(int argc, char *argv[])
 {
@@ -31,7 +32,7 @@ int main(int argc, char *argv[])
     });
 
     // Receive mouse-wheel zoom signals
-    QObject::connect(&w, &MapView::zoomChanged, [=](int zoom){qDebug() << "zoom:" << zoom;});
+    QObject::connect(&w, &MapView::zoomChanged, [&](int zoom){qDebug() << "zoom:" << zoom;});
 
     // Create item with pixmap and text
     MapItem *itemPixmap = w.createItem();
@@ -152,8 +153,17 @@ int main(int argc, char *argv[])
     itemLine->setText(lineText, {0, -1000});
 
     // Change map provider
-    QTimer::singleShot(3000, [&]{w.setProvider(GoogleSat); qDebug() << Q_FUNC_INFO;});
-    QTimer::singleShot(6000, [&]{w.setProvider(YandexSat); qDebug() << Q_FUNC_INFO;});
+    QComboBox comboBoxProviders(&w);
+    comboBoxProviders.show();
+    comboBoxProviders.setGeometry(5, 5, 200, 30);
+    comboBoxProviders.addItems({"GoogleMap", "GoogleSat", "GoogleLand",
+                                "BingSat", "BingRoads", "OsmMap",
+                                "YandexMap", "YandexSat", "StamenToner",
+                                "ThunderforestTransport", "ThunderforestLandscape", "ThunderforestOutdoors"});
+
+    QObject::connect(&comboBoxProviders, qOverload<int>(&QComboBox::currentIndexChanged), &w, [&](int index){
+        w.setProvider(static_cast<MapProviders>(index));
+    });
 
     return a.exec();
 }
