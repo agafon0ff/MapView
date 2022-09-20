@@ -101,11 +101,11 @@ void MapView::setZoom(int value)
     d->settings.setFactor(qPow(2., static_cast<qreal>(d->settings.zoomMax() - d->settings.zoom() + 1)) / 2.);
     d->tileLoader->update();
 
-    QMatrix matrix;
+    QTransform matrix;
     matrix.scale(1 / d->settings.factor(),
                  1 / d->settings.factor());
 
-    setMatrix(matrix);
+    setTransform(matrix);
     calculateMapGeometry();
 
     emit zoomChanged(d->settings.zoom());

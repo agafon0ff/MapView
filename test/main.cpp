@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     w.show();
 
     // Set map provider and view settings
-    w.setProvider(OsmMap);
+    w.setProvider(GoogleMap);
     w.setZoom(16);
     w.setCenterOn(QPointF(-21.94336653, 64.15625817));
     w.setCachePath(".");
