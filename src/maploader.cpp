@@ -30,9 +30,9 @@ static const QMap<int, QString> MAP_PROVIDERS = {
 
 static const QMap<int, QString> MAP_CACHE_PATHS = {
     {GoogleMap,     "/map/z%1/%2/x%3/%4/y%5.png"},
-    {GoogleSat,     "/sat/z%1/%2/x%3/%4/y%5.jpg"},
-    {GoogleLand,    "/land/z%1/%2/x%3/%4/y%5.jpg"},
-    {BingSat,       "/vesat/z%1/%2/x%3/%4/y%5.jpg"},
+    {GoogleSat,     "/sat/z%1/%2/x%3/%4/y%5.png"},
+    {GoogleLand,    "/land/z%1/%2/x%3/%4/y%5.png"},
+    {BingSat,       "/vesat/z%1/%2/x%3/%4/y%5.png"},
     {BingRoads,     "/bing_roads_ru/z%1/%2/x%3/%4/y%5.png"},
     {OsmMap,        "/osm/z%1/%2/x%3/%4/y%5.png"},
     {YandexMap,     "/yam/z%1/%2/x%3/%4/y%5.png"},
