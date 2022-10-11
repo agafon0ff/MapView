@@ -30,9 +30,9 @@ static const QMap<int, QString> MAP_PROVIDERS = {
 
 static const QMap<int, QString> MAP_CACHE_PATHS = {
     {GoogleMap,     "/map/z%1/%2/x%3/%4/y%5.png"},
-    {GoogleSat,     "/sat/z%1/%2/x%3/%4/y%5.jpg"},
-    {GoogleLand,    "/land/z%1/%2/x%3/%4/y%5.jpg"},
-    {BingSat,       "/vesat/z%1/%2/x%3/%4/y%5.jpg"},
+    {GoogleSat,     "/sat/z%1/%2/x%3/%4/y%5.png"},
+    {GoogleLand,    "/land/z%1/%2/x%3/%4/y%5.png"},
+    {BingSat,       "/vesat/z%1/%2/x%3/%4/y%5.png"},
     {BingRoads,     "/bing_roads_ru/z%1/%2/x%3/%4/y%5.png"},
     {OsmMap,        "/osm/z%1/%2/x%3/%4/y%5.png"},
     {YandexMap,     "/yam/z%1/%2/x%3/%4/y%5.png"},
@@ -93,23 +93,24 @@ void MapLoader::loadTile(const QPoint &pos)
     if(QPixmapCache::find(cache, &pix))
     {
         emit loaded(pos, pix);
+        return;
     }
-    else if(loadFile(cache, pix))
+
+    if(loadFile(cache, pix))
     {
         emit loaded(pos, pix);
+        return;
     }
-    else
-    {
-        QUrl url = createUrl(pos);
-        QNetworkRequest request = QNetworkRequest(QUrl(url));
-        request.setRawHeader("User-Agent", "Mozilla/5.0 (PC; U; Intel; Linux; en) AppleWebKit/420+ (KHTML, like Gecko)");
 
-        QNetworkReply *reply = d->netAccessManager->get(request);
-        d->replies.append(reply);
+    QUrl url = createUrl(pos);
+    QNetworkRequest request = QNetworkRequest(QUrl(url));
+    request.setRawHeader("User-Agent", "Mozilla/5.0 (PC; U; Intel; Linux; en) AppleWebKit/420+ (KHTML, like Gecko)");
 
-        reply->setProperty("id", pos);
-        connect(reply, &QNetworkReply::finished, this, &MapLoader::requestFinished);
-    }
+    QNetworkReply *reply = d->netAccessManager->get(request);
+    d->replies.append(reply);
+
+    reply->setProperty("id", pos);
+    connect(reply, &QNetworkReply::finished, this, &MapLoader::requestFinished);
 }
 
 void MapLoader::requestFinished()
