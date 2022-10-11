@@ -10,6 +10,7 @@ struct MapGlobal::MapGlobalPrivate
 {
     MapProviders provider = OsmMap;
     QString cachePath;
+    QString cacheSuffix = "/map";
     int zoomMax = 23;
     int zoom = zoomMax;
     int tileWidth = 256;

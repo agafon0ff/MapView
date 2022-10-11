@@ -73,8 +73,8 @@ void MapView::setProvider(MapProviders provider)
 {
     if (provider == d->settings.provider()) return;
 
-    QPointF &&sceneCenter = mapToScene(viewport()->rect().center());
-    QPointF &&center = d->settings.toCoords(sceneCenter);
+    QPointF sceneCenter = mapToScene(viewport()->rect().center());
+    QPointF center = d->settings.toCoords(sceneCenter);
     d->settings.setProvider(provider);
     setCenterOn(center);
 

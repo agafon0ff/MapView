@@ -13,41 +13,12 @@
 #include <QUrl>
 #include <QDir>
 
-static const QMap<int, QString> MAP_PROVIDERS = {
-    {GoogleMap,         "http://mt0.google.com/vt/lyrs=m&hl=en&x=%1&y=%2&z=%3"},
-    {GoogleSat,         "http://mt0.google.com/vt/lyrs=y&hl=ru&x=%1&y=%2&z=%3"},
-    {GoogleLand,        "http://mt0.google.com/vt/lyrs=p&hl=ru&x=%1&y=%2&z=%3"},
-    {BingSat,           "http://ecn.t0.tiles.virtualearth.net/tiles/a%1.jpeg?g=0"},
-    {BingRoads,         "http://ecn.dynamic.t0.tiles.virtualearth.net/comp/CompositionHandler/%1?mkt=ru-ru&it=G,VE,BX,L,LA&shading=hill"},
-    {OsmMap,            "https://tile.openstreetmap.org/%3/%1/%2.png"},
-    {YandexMap,         "http://vec04.maps.yandex.net/tiles?l=map&lang=ru-RU&v=2.26.0&x=%1&y=%2&z=%3"},
-    {YandexSat,         "http://sat01.maps.yandex.net/tiles?l=sat&v=3.379.0&x=%1&y=%2&z=%3"},
-    {StamenToner,       "http://a.tile.stamen.com/toner/%3/%1/%2.png"},
-    {ThunderforestTransport,    "http://tile.thunderforest.com/transport/%3/%1/%2.png"},
-    {ThunderforestLandscape,    "http://tile.thunderforest.com/landscape/%3/%1/%2.png"},
-    {ThunderforestOutdoors,     "http://tile.thunderforest.com/outdoors/%3/%1/%2.png"}
-};
-
-static const QMap<int, QString> MAP_CACHE_PATHS = {
-    {GoogleMap,     "/map/z%1/%2/x%3/%4/y%5.png"},
-    {GoogleSat,     "/sat/z%1/%2/x%3/%4/y%5.png"},
-    {GoogleLand,    "/land/z%1/%2/x%3/%4/y%5.png"},
-    {BingSat,       "/vesat/z%1/%2/x%3/%4/y%5.png"},
-    {BingRoads,     "/bing_roads_ru/z%1/%2/x%3/%4/y%5.png"},
-    {OsmMap,        "/osm/z%1/%2/x%3/%4/y%5.png"},
-    {YandexMap,     "/yam/z%1/%2/x%3/%4/y%5.png"},
-    {YandexSat,     "/yas/z%1/%2/x%3/%4/y%5.png"},
-    {StamenToner,   "/stamen/z%1/%2/x%3/%4/y%5.png"},
-    {ThunderforestTransport, "/tht/z%1/%2/x%3/%4/y%5.png"},
-    {ThunderforestLandscape, "/thl/z%1/%2/x%3/%4/y%5.png"},
-    {ThunderforestOutdoors, "/tho/z%1/%2/x%3/%4/y%5.png"}
-};
-
 struct MapLoader::MapLoaderPrivate
 {
     MapGlobal &settings = MapGlobal::instance();
     QNetworkAccessManager *netAccessManager;
     QVector<QNetworkReply*> replies;
+    QString cachePath = "/z%1/%2/x%3/%4/y%5.png";
 };
 
 MapLoader::MapLoader(QObject *parent) : QObject(parent),
@@ -139,7 +110,7 @@ void MapLoader::requestFinished()
 QUrl MapLoader::createUrl(const QPoint &pos)
 {
     QUrl url;
-    QString path = MAP_PROVIDERS.value(d->settings.provider());
+    QString path = MAP_PROVIDERS[d->settings.provider()];
     int provider = d->settings.provider();
     int z = d->settings.zoom() - 1;
 
@@ -167,7 +138,7 @@ QUrl MapLoader::createUrl(const QPoint &pos)
 
 QString MapLoader::createCachePath(const QPoint &pos)
 {
-    return MAP_CACHE_PATHS.value(d->settings.provider()).arg(d->settings.zoom()).
+    return MAP_CACHE_SUFFIXES[d->settings.provider()] + d->cachePath.arg(d->settings.zoom()).
             arg(pos.x()/1024).arg(pos.x()).arg(pos.y()/1024).arg(pos.y());
 }
 
