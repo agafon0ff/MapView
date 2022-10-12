@@ -19,6 +19,7 @@ struct MapLoader::MapLoaderPrivate
     QNetworkAccessManager *netAccessManager;
     QVector<QNetworkReply*> replies;
     QString cachePath = "/z%1/%2/x%3/%4/y%5.png";
+    QString currentUrl;
 };
 
 MapLoader::MapLoader(QObject *parent) : QObject(parent),
@@ -58,6 +59,8 @@ void MapLoader::update()
 
 void MapLoader::loadTile(const QPoint &pos)
 {
+    if (d->settings.providerName().isEmpty()) return;
+
     QString cache = createCachePath(pos);
     QPixmap pix;
 
@@ -71,8 +74,8 @@ void MapLoader::loadTile(const QPoint &pos)
     }
     else
     {
-        QUrl url = createUrl(pos);
-        QNetworkRequest request = QNetworkRequest(QUrl(url));
+        d->settings.calculateUrl(pos.x(), pos.y(), d->settings.zoom() - 1, d->currentUrl);
+        QNetworkRequest request = QNetworkRequest(QUrl(d->currentUrl));
         request.setRawHeader("User-Agent", "Mozilla/5.0 (PC; U; Intel; Linux; en) AppleWebKit/420+ (KHTML, like Gecko)");
 
         QNetworkReply *reply = d->netAccessManager->get(request);
@@ -107,38 +110,9 @@ void MapLoader::requestFinished()
     saveFile(cache, data);
 }
 
-QUrl MapLoader::createUrl(const QPoint &pos)
-{
-    QUrl url;
-    QString path = MAP_PROVIDERS[d->settings.provider()];
-    int provider = d->settings.provider();
-    int z = d->settings.zoom() - 1;
-
-    if(provider == BingSat || provider == BingRoads)
-    {
-        QString key;
-        for (int i = z; i > 0; i--)
-        {
-            char digit = '0';
-            int mask = 1 << (i - 1);
-            if ((pos.x() & mask) != 0) digit++;
-            if ((pos.y() & mask) != 0) digit += 2;
-
-            key.append(digit);
-        }
-        url.setUrl(path.arg(key));
-    }
-    else
-    {
-        url.setUrl(path.arg(pos.x()).arg(pos.y()).arg(z));
-    }
-
-    return url;
-}
-
 QString MapLoader::createCachePath(const QPoint &pos)
 {
-    return MAP_CACHE_SUFFIXES[d->settings.provider()] + d->cachePath.arg(d->settings.zoom()).
+    return d->settings.cachePathSuffix() + d->cachePath.arg(d->settings.zoom()).
             arg(pos.x()/1024).arg(pos.x()).arg(pos.y()/1024).arg(pos.y());
 }
 

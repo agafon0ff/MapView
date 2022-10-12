@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 
     // Set map provider and view settings
     w.setCachePath("./tiles");
-    w.setProvider(GoogleMap);
+    w.setProvider(ProviderGoogleMap);
     w.setZoom(16);
     w.setCenterOn(QPointF(-21.94336653, 64.15625817));
 
@@ -152,18 +152,21 @@ int main(int argc, char *argv[])
     QString lineText(QString::number(MapGlobal::instance().distance(line.at(0), line.at(1)), 'f', 0) + "m");
     itemLine->setText(lineText, {0, -1000});
 
+    // Add provider GoogleMapJapan
+    w.addProvider("GoogleMapJapan", {"http://mt0.google.com/vt/lyrs=m&hl=ja&x=%1&y=%2&z=%3", "/map_ja", Spherical,
+                                     [](int x, int y, int z, QString &url) {url = url.arg(x).arg(y).arg(z);}});
+
     // Change map provider
     QComboBox comboBoxProviders(&w);
     comboBoxProviders.show();
     comboBoxProviders.setGeometry(5, 5, 200, 30);
-    comboBoxProviders.addItems({"GoogleMap", "GoogleSat", "GoogleLand",
-                                "BingSat", "BingRoads", "OsmMap",
-                                "YandexMap", "YandexSat", "StamenToner",
-                                "ThunderforestTransport", "ThunderforestLandscape", "ThunderforestOutdoors"});
+    comboBoxProviders.addItems({ProviderGoogleMap, ProviderGoogleSat, ProviderGoogleLand,
+                                ProviderBingSat, ProviderBingRoads, ProviderOsmMap,
+                                ProviderYandexMap, ProviderYandexSat, ProviderStamenToner,
+                                ProviderThunderforestTransport, ProviderThunderforestLandscape,
+                                ProviderThunderforestOutdoors, "GoogleMapJapan"});
 
-    QObject::connect(&comboBoxProviders, qOverload<int>(&QComboBox::currentIndexChanged), &w, [&](int index){
-        w.setProvider(static_cast<MapProviders>(index));
-    });
+    QObject::connect(&comboBoxProviders, &QComboBox::currentTextChanged, &w, &MapView::setProvider);
 
     return a.exec();
 }

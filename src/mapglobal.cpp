@@ -8,9 +8,10 @@ static const double MERCATOR_QUARTER = 20037508.3427892430765884088807;  //2*PI*
 
 struct MapGlobal::MapGlobalPrivate
 {
-    MapProviders provider = OsmMap;
+    QMap<QString, Provider> providers;
+    Provider provider;
+    QString providerName;
     QString cachePath;
-    QString cacheSuffix = "/map";
     int zoomMax = 23;
     int zoom = zoomMax;
     int tileWidth = 256;
@@ -50,7 +51,7 @@ void MapGlobal::setZoom(int value)
         d->zoom = value;
 }
 
-qreal MapGlobal::factor()
+qreal MapGlobal::factor() const
 {
     return d->factor;
 }
@@ -60,24 +61,50 @@ void MapGlobal::setFactor(qreal value)
     d->factor = value;
 }
 
-MapProviders MapGlobal::provider() const
+QString MapGlobal::providerName() const
 {
-    return d->provider;
+    return d->providerName;
 }
 
-void MapGlobal::setProvider(MapProviders provider)
+bool MapGlobal::setCurrentProvider(const QString &name)
 {
-    d->provider = provider;
+    if (!d->providers.contains(name)) return false;
+
+    d->providerName = name;
+    d->provider = d->providers.value(name);
+
+    return true;
 }
 
-QString MapGlobal::cachePath()
+QString MapGlobal::cachePath() const
 {
     return d->cachePath;
+}
+
+QString MapGlobal::cachePathSuffix() const
+{
+    return d->provider.cachePathSuffix;
 }
 
 void MapGlobal::setCachePath(const QString &path)
 {
     d->cachePath = path;
+}
+
+void MapGlobal::calculateUrl(int x, int y, int z, QString &url)
+{
+    url = d->provider.url;
+    d->provider.calcUrlFunc(x, y, z, url);
+}
+
+void MapGlobal::addProvider(const QString &name, const Provider &provider)
+{
+    d->providers.insert(name, provider);
+}
+
+void MapGlobal::removeProvider(const QString &name)
+{
+    d->providers.remove(name);
 }
 
 QPointF MapGlobal::toCoords(const QPointF &point)
@@ -88,7 +115,7 @@ QPointF MapGlobal::toCoords(const QPointF &point)
     qreal lon = (point.x() - tileWidth / 2) / (tilesCount * tileWidth) * 360. - 180.;
     qreal lat = 0;
 
-    if (d->provider == YandexMap || d->provider == YandexSat)
+    if (d->provider.coordsType == CoordsTypes::Ellipsoidal)
     {
         double c1 = 0.00335655146887969;
         double c2 = 0.00000657187271079536;
@@ -119,7 +146,7 @@ QPointF MapGlobal::toPoint(const QPointF &coords)
 
     qreal y = 0;
 
-    if (d->provider == YandexMap || d->provider == YandexSat)
+    if (d->provider.coordsType == CoordsTypes::Ellipsoidal)
     {
         double rLat = coords.y() * M_PI / 180;
         double k = 0.0818191908426;
@@ -169,7 +196,37 @@ float MapGlobal::distance(const QPointF &coords1, const QPointF &coords2)
 
 MapGlobal::MapGlobal() :
     d(new MapGlobalPrivate)
-{
+{    
+    auto calcUrlFuncMain = [](int x, int y, int z, QString &url) {
+        url = url.arg(x).arg(y).arg(z);
+    };
+
+    auto calcUrlFuncBing = [](int x, int y, int z, QString &url) {
+        QString key;
+        for (int i = z; i > 0; i--)
+        {
+            char digit = '0';
+            int mask = 1 << (i - 1);
+            if ((x & mask) != 0) digit++;
+            if ((y & mask) != 0) digit += 2;
+
+            key.append(digit);
+        }
+        url = (url.arg(key));
+    };
+
+    addProvider(ProviderGoogleMap, {"http://mt0.google.com/vt/lyrs=m&hl=en&x=%1&y=%2&z=%3", "/map", Spherical, calcUrlFuncMain});
+    addProvider(ProviderGoogleSat, {"http://mt0.google.com/vt/lyrs=y&hl=en&x=%1&y=%2&z=%3", "/sat", Spherical, calcUrlFuncMain});
+    addProvider(ProviderGoogleLand, {"http://mt0.google.com/vt/lyrs=p&hl=en&x=%1&y=%2&z=%3", "/land", Spherical, calcUrlFuncMain});
+    addProvider(ProviderBingSat, {"http://ecn.t0.tiles.virtualearth.net/tiles/a%1.jpeg?g=0", "/vesat", Spherical, calcUrlFuncBing});
+    addProvider(ProviderBingRoads, {"http://ecn.dynamic.t0.tiles.virtualearth.net/comp/CompositionHandler/%1?mkt=en-en&it=G,VE,BX,L,LA&shading=hill", "/bing_roads_en", Spherical, calcUrlFuncBing});
+    addProvider(ProviderOsmMap, {"https://tile.openstreetmap.org/%3/%1/%2.png", "/osm", Spherical, calcUrlFuncMain});
+    addProvider(ProviderYandexMap, {"http://vec04.maps.yandex.net/tiles?l=map&lang=en-EN&v=2.26.0&x=%1&y=%2&z=%3", "/yam", Ellipsoidal, calcUrlFuncMain});
+    addProvider(ProviderYandexSat, {"http://sat01.maps.yandex.net/tiles?l=sat&v=3.379.0&x=%1&y=%2&z=%3", "/yas", Ellipsoidal, calcUrlFuncMain});
+    addProvider(ProviderStamenToner, {"http://a.tile.stamen.com/toner/%3/%1/%2.png", "/stamen", Spherical, calcUrlFuncMain});
+    addProvider(ProviderThunderforestTransport, {"http://tile.thunderforest.com/transport/%3/%1/%2.png", "/tht", Spherical, calcUrlFuncMain});
+    addProvider(ProviderThunderforestLandscape, {"http://tile.thunderforest.com/landscape/%3/%1/%2.png", "/thl", Spherical, calcUrlFuncMain});
+    addProvider(ProviderThunderforestOutdoors, {"http://tile.thunderforest.com/outdoors/%3/%1/%2.png", "/tho", Spherical, calcUrlFuncMain});
 }
 
 MapGlobal::~MapGlobal()

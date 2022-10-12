@@ -1,51 +1,33 @@
 #pragma once
 
 #include <QObject>
+#include <functional>
 
-enum MapProviders
+static const char* ProviderGoogleMap = "GoogleMap";
+static const char* ProviderGoogleSat = "GoogleSat";
+static const char* ProviderGoogleLand = "GoogleLand";
+static const char* ProviderBingSat = "BingSat";
+static const char* ProviderBingRoads = "BingRoads";
+static const char* ProviderOsmMap = "OsmMap";
+static const char* ProviderYandexMap = "YandexMap";
+static const char* ProviderYandexSat = "YandexSat";
+static const char* ProviderStamenToner = "StamenToner";
+static const char* ProviderThunderforestTransport = "ThunderforestTransport";
+static const char* ProviderThunderforestLandscape = "ThunderforestLandscape";
+static const char* ProviderThunderforestOutdoors = "ThunderforestOutdoors";
+
+enum CoordsTypes
 {
-    GoogleMap,
-    GoogleSat,
-    GoogleLand,
-    BingSat,
-    BingRoads,
-    OsmMap,
-    YandexMap,
-    YandexSat,
-    StamenToner,
-    ThunderforestTransport,
-    ThunderforestLandscape,
-    ThunderforestOutdoors,
+    Spherical,
+    Ellipsoidal
 };
 
-static const char* MAP_PROVIDERS[] = {
-    "http://mt0.google.com/vt/lyrs=m&hl=en&x=%1&y=%2&z=%3",                         // GoogleMap
-    "http://mt0.google.com/vt/lyrs=y&hl=ru&x=%1&y=%2&z=%3",                         // GoogleSat
-    "http://mt0.google.com/vt/lyrs=p&hl=ru&x=%1&y=%2&z=%3",                         // GoogleLand
-    "http://ecn.t0.tiles.virtualearth.net/tiles/a%1.jpeg?g=0",                      // BingSat
-    "http://ecn.dynamic.t0.tiles.virtualearth.net/comp/CompositionHandler/%1?mkt=ru-ru&it=G,VE,BX,L,LA&shading=hill", // BingRoads
-    "https://tile.openstreetmap.org/%3/%1/%2.png",                                  // OsmMap
-    "http://vec04.maps.yandex.net/tiles?l=map&lang=ru-RU&v=2.26.0&x=%1&y=%2&z=%3",  // YandexMap
-    "http://sat01.maps.yandex.net/tiles?l=sat&v=3.379.0&x=%1&y=%2&z=%3",            // YandexSat
-    "http://a.tile.stamen.com/toner/%3/%1/%2.png",                                  // StamenToner
-    "http://tile.thunderforest.com/transport/%3/%1/%2.png",                         // ThunderforestTransport
-    "http://tile.thunderforest.com/landscape/%3/%1/%2.png",                         // ThunderforestLandscape
-    "http://tile.thunderforest.com/outdoors/%3/%1/%2.png"                           // ThunderforestOutdoors
-};
-
-static const char* MAP_CACHE_SUFFIXES[] = {
-    "/map",             // GoogleMap
-    "/sat",             // GoogleSat
-    "/land",            // GoogleLand
-    "/vesat",           // BingSat
-    "/bing_roads_ru",   // BingRoads
-    "/osm",             // OsmMap
-    "/yam",             // YandexMap
-    "/yas",             // YandexSat
-    "/stamen",          // StamenToner
-    "/tht",             // ThunderforestTransport
-    "/thl",             // ThunderforestLandscape
-    "/tho"              // ThunderforestOutdoors
+struct Provider
+{
+    QString url;
+    QString cachePathSuffix;
+    CoordsTypes coordsType = Spherical;
+    std::function<void(int, int, int, QString&)> calcUrlFunc;
 };
 
 class MapGlobal
@@ -60,14 +42,20 @@ public:
     int zoom() const;
     void setZoom(int value);
 
-    qreal factor();
+    qreal factor() const;
     void setFactor(qreal value);
 
-    MapProviders provider() const;
-    void setProvider(MapProviders provider);
+    QString providerName() const;
+    bool setCurrentProvider(const QString &name);
 
-    QString cachePath();
+    QString cachePath() const;
+    QString cachePathSuffix() const;
     void setCachePath(const QString &path);
+
+    void calculateUrl(int x, int y, int z, QString &url);
+
+    void addProvider(const QString &name, const Provider &provider);
+    void removeProvider(const QString &name);
 
     QPointF toCoords(const QPointF &point);
     QPointF toPoint(const QPointF &coords);

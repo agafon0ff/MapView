@@ -69,13 +69,13 @@ MapView::~MapView()
     delete d;
 }
 
-void MapView::setProvider(MapProviders provider)
+void MapView::setProvider(const QString &provider)
 {
-    if (provider == d->settings.provider()) return;
+    if (provider == d->settings.providerName()) return;
 
     QPointF sceneCenter = mapToScene(viewport()->rect().center());
     QPointF center = d->settings.toCoords(sceneCenter);
-    d->settings.setProvider(provider);
+    d->settings.setCurrentProvider(provider);
     setCenterOn(center);
 
     for (MapItem *item: qAsConst(d->items))
@@ -84,9 +84,19 @@ void MapView::setProvider(MapProviders provider)
     d->map->updateTiles();
 }
 
-MapProviders MapView::provider()
+QString MapView::provider()
 {
-    return d->settings.provider();
+    return d->settings.providerName();
+}
+
+void MapView::addProvider(const QString &name, const Provider &provider)
+{
+    d->settings.addProvider(name, provider);
+}
+
+void MapView::removeProvider(const QString &name)
+{
+    d->settings.removeProvider(name);
 }
 
 void MapView::setCachePath(const QString &path)

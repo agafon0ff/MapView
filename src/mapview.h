@@ -1,7 +1,7 @@
 #pragma once
 
-#include "mapglobal.h"
 #include "mapitem.h"
+#include "mapglobal.h"
 
 #include <QGraphicsObject>
 #include <QGraphicsView>
@@ -15,8 +15,11 @@ public:
     MapView(QWidget *parent = Q_NULLPTR);
     ~MapView();
 
-    void setProvider(MapProviders provider = OsmMap);
-    MapProviders provider();
+    void setProvider(const QString &provider);
+    QString provider();
+
+    void addProvider(const QString &name, const Provider &provider);
+    void removeProvider(const QString &name);
 
     void setCachePath(const QString &path);
 

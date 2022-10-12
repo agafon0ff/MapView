@@ -18,7 +18,6 @@ public slots:
 
 private:
     void requestFinished();
-    QUrl createUrl(const QPoint &pos);
     QString createCachePath(const QPoint &pos);
 
     void saveFile(const QString &path, const QByteArray &data);
