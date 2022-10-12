@@ -68,7 +68,8 @@ void MapLoader::loadTile(const QPoint &pos)
     {
         emit loaded(pos, pix);
     }
-    else if(loadFile(cache, pix))
+
+    if(loadFile(cache, pix))
     {
         emit loaded(pos, pix);
     }
